@@ -13,6 +13,7 @@ A continuación, encontrarás los enlaces a las carpetas con las condiciones de 
 
 * ### [2025 Segundo semestre](./plan_aula/2025/programa.md)
     * En este vinculo se detalla el plan del curso, los temas y los acuerdo para el segundo semestre del 2015.
+    * Acuerdo para el segundo semetre del 2025 [Documento de acuerdos 2025 Segundo Semestre](./plan_aula/2025/acuerdos.md)
 
 ---
 
