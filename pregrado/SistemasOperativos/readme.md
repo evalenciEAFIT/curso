@@ -12,7 +12,7 @@ A lo largo de este curso, exploraremos los conceptos clave que sustentan cualqui
 A continuación, encontrarás los enlaces a las carpetas con las condiciones de aula por semestre:
 
 * ### [2025 Segundo semestre](./plan_aula/2025/programa.md)
-    * En este módulo exploraremos la gestión de procesos y subprocesos (hilos), la planificación de la CPU, la sincronización y los problemas de concurrencia como los interbloqueos (deadlocks).
+    * En este vinculo se detalla el plan del curso, los temas y los acuerdo para el segundo semestre del 2015.
 
 ---
 
