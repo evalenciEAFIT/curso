@@ -24,7 +24,7 @@ A continuación, encontrarás los enlaces a las carpetas con el material de estu
 * ### [Módulo 1: Fundamentos y Nivelación (Semanas 1-4)]((./modulos/1_introduccion))
    * Este módulo establece las bases necesarias en programación y arquitectura para poder abordar los temas complejos del curso. 
 
-* ### [*Módulo 2: Concurrencia y Sincronización (Semanas 5-9)](./modulos/2_concurrencia_sincronizacion)
+* ### [Módulo 2: Concurrencia y Sincronización (Semanas 5-9)](./modulos/2_concurrencia_sincronizacion)
    * Este es el corazón de la concurrencia, uno de los temas más desafiantes y fundamentales. 
 
 * ### [Módulo 3: Gestión de Memoria y Almacenamiento (Semanas 10-14)](./modulos/3_memoria_almacenamiento)
