@@ -21,14 +21,14 @@ A continuación, encontrarás los enlaces a las carpetas con las condiciones de 
 
 A continuación, encontrarás los enlaces a las carpetas con el material de estudio para cada uno de los módulos principales del curso:
 
-* ### [Procesador](./Procesador/)
-    * En este módulo exploraremos la gestión de procesos y subprocesos (hilos), la planificación de la CPU, la sincronización y los problemas de concurrencia como los interbloqueos (deadlocks).
+* ### [Módulo 1: Fundamentos y Nivelación (Semanas 1-4)]((./modulos/1_introduccion))
+   * Este módulo establece las bases necesarias en programación y arquitectura para poder abordar los temas complejos del curso. 
 
-* ### [Memoria](./Memoria/)
-    * Aquí aprenderás sobre la gestión de la memoria principal, la memoria virtual, la paginación, la segmentación y las diferentes estrategias de asignación de memoria.
+* ### [*Módulo 2: Concurrencia y Sincronización (Semanas 5-9)](./modulos/2_concurrencia_sincronizacion)
+   * Este es el corazón de la concurrencia, uno de los temas más desafiantes y fundamentales. 
 
-* ### [Entrada/Salida (IO)](./IO/)
-    * Este módulo cubre cómo el sistema operativo maneja los dispositivos de entrada y salida, la gestión de almacenamiento secundario, los sistemas de archivos y las interfaces de E/S.
+* ### [Módulo 3: Gestión de Memoria y Almacenamiento (Semanas 10-14)](./modulos/3_memoria_almacenamiento)
+   * Este módulo cubre cómo el SO gestiona el recurso de la memoria y el almacenamiento persistente.
 
 ---
 
