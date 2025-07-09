@@ -32,4 +32,3 @@ A continuación, encontrarás los enlaces a las carpetas con el material de estu
 
 ---
 
-¡Esperamos que disfrutes el curso y aprendas mucho!
