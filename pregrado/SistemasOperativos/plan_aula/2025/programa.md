@@ -1,8 +1,8 @@
-### **Plan de Estudio de Sistemas Operativos**  (16 Semanas)
+# **Plan de Estudio de Sistemas Operativos**  
+(16 Semanas)
 
-### 
 
-### **Objetivo General:**
+## **Objetivo General:**
 
 Al finalizar el curso, el estudiante comprenderá los conceptos fundamentales de la gestión de procesos, concurrencia, manejo de memoria y sistemas de archivos en un sistema operativo moderno. Además, tendrá las bases de programación en C/C++ y una introducción a Assembler que le permitirán entender la interacción entre el software de bajo nivel y el hardware.
 
