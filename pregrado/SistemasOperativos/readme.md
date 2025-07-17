@@ -21,7 +21,7 @@ A continuación, encontrarás los enlaces a las carpetas con las condiciones de 
 
 A continuación, encontrarás los enlaces a las carpetas con el material de estudio para cada uno de los módulos principales del curso:
 
-* ### [Módulo 1: Fundamentos y Nivelación (Semanas 1-4)]((./modulos/1_introduccion))
+* ### [Módulo 1: Fundamentos y Nivelación (Semanas 1-4)]((./modulos/1_introduccion)
    * Este módulo establece las bases necesarias en programación y arquitectura para poder abordar los temas complejos del curso. 
 
 * ### [Módulo 2: Concurrencia y Sincronización (Semanas 5-9)](./modulos/2_concurrencia_sincronizacion)
