@@ -107,14 +107,14 @@ C es un lenguaje de programación de propósito general, imperativo y estructura
 
 ## Estructura Básica de un Programa en C:
 
-\`\`\`c  
+'''c  
 \#include \<stdio.h\> // Incluye la biblioteca estándar de entrada/salida
 
 int main() { // Función principal donde comienza la ejecución del programa  
     printf("¡Hola, Mundo\!\\n"); // Imprime texto en la consola  
     return 0; // Indica que el programa finalizó exitosamente  
 }  
-\`\`\`
+'''
 
 * \#include \<stdio.h\>: Incluye la cabecera de la biblioteca estándar de entrada/salida. Esto nos da acceso a funciones como printf().  
 * int main(): Es la función principal donde comienza la ejecución de cualquier programa en C. int indica que la función devuelve un entero (generalmente 0 para éxito).  
