@@ -108,7 +108,7 @@ C es un lenguaje de programación de propósito general, imperativo y estructura
 ## Estructura Básica de un Programa en C:
 
 ```c  
-\#include \<stdio.h\> // Incluye la biblioteca estándar de entrada/salida
+#include <stdio.h> // Incluye la biblioteca estándar de entrada/salida
 
 int main() { // Función principal donde comienza la ejecución del programa  
     printf("¡Hola, Mundo\!\\n"); // Imprime texto en la consola  
@@ -127,15 +127,15 @@ C++ es una extensión de C, añadiendo características de programación orienta
 
 ### Estructura Básica de un Programa en C++:
 
-C++
+```c++
 
-\#**include** \<iostream\> // Incluye la biblioteca de entrada/salida de C++
+#include <iostream> // Incluye la biblioteca de entrada/salida de C++
 
 int main() { // Función principal  
-    std::cout \<\< "¡Hola, C++ Mundo\!" \<\< std::endl; // Imprime texto  
+    std::cout << "¡Hola, C++ Mundo\!" << std::endl; // Imprime texto  
     return 0; // Indica que el programa finalizó exitosamente  
 }
-
+```
 * \#include \<iostream\>: Incluye la cabecera para las operaciones de entrada/salida en C++.  
 * std::cout: Es el objeto de flujo de salida estándar, usado para imprimir en la consola.  
 * \<\<: Es el operador de inserción, usado para enviar datos al flujo de salida.  
@@ -151,12 +151,12 @@ int main() { // Función principal
 
 **Código (hello.c):**
 
-C
+```c
 
-\#**include** \<stdio.h\>
+\#include <stdio.h>
 
 int main() {  
-    printf("¡Hola, Mundo desde C\!\\n");  
+    printf("¡Hola, Mundo desde C!\n");  
     return 0;  
 }
 
@@ -178,24 +178,24 @@ int main() {
 
 **Código (sum.cpp):**
 
-C++
+```c++
 
-\#**include** \<iostream\>
+#include <iostream>
 
 int main() {  
     int num1;  
     int num2;  
     int sum;
 
-    std::cout \<\< "Introduce el primer numero: ";  
-    std::cin \>\> num1; // Lee el primer número
+    std::cout << "Introduce el primer numero: ";  
+    std::cin >> num1; // Lee el primer número
 
-    std::cout \<\< "Introduce el segundo numero: ";  
-    std::cin \>\> num2; // Lee el segundo número
+    std::cout << "Introduce el segundo numero: ";  
+    std::cin >> num2; // Lee el segundo número
 
-    sum \= num1 \+ num2; // Calcula la suma
+    sum = num1 + num2; // Calcula la suma
 
-    std::cout \<\< "La suma es: " \<\< sum \<\< std::endl; // Muestra el resultado
+    std::cout << "La suma es: " << sum << std::endl; // Muestra el resultado
 
     return 0;  
 }
@@ -217,25 +217,25 @@ int main() {
 
 **Código (conditional.c):**
 
-C
+```c
 
-\#**include** \<stdio.h\>
+#include <stdio.h>
 
 int main() {  
     int edad;
 
     printf("Por favor, introduce tu edad: ");  
-    scanf("%d", \&edad); // Lee un entero desde el teclado
+    scanf("%d", edad); // Lee un entero desde el teclado
 
-    if (edad \>= 18) {  
-        printf("Eres mayor de edad.\\n");  
+    if (edad >= 18) {  
+        printf("Eres mayor de edad.\n");  
     } else {  
-        printf("Eres menor de edad.\\n");  
+        printf("Eres menor de edad.\n");  
     }
 
     return 0;  
 }
-
+```
 **Instrucciones para Compilar y Ejecutar:**
 
 1. **Guarda el código:** Guarda el código como conditional.c.  
@@ -252,17 +252,19 @@ int main() {
 
 **Código (loop.cpp):**
 
-C++
+```c
 
-\#**include** \<iostream\>
+#include <iostream>
 
 int main() {  
-    std::cout \<\< "Contando del 1 al 5:" \<\< std::endl;  
-    for (int i \= 1; i \<= 5; \++i) { // Bucle for: inicialización, condición, incremento  
-        std::cout \<\< i \<\< std::endl;  
+    std::cout << "Contando del 1 al 5:" << std::endl;  
+    for (int i = 1; i <= 5; ++i) { // Bucle for: inicialización, condición, incremento  
+        std::cout << i << std::endl;  
     }  
     return 0;  
 }
+
+```
 
 **Instrucciones para Compilar y Ejecutar:**
 
