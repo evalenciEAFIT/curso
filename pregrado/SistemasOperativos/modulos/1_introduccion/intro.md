@@ -187,8 +187,3 @@ proyecto-ensamblador/
 
 4. **Arquitectura**: Específico para procesadores de 64 bits (x86-64).
 
-## 🎯 Conclusión
-
-Este tutorial demuestra cómo crear un programa básico en ensamblador utilizando herramientas modernas en Windows 11. El uso de WSL permite acceder a un entorno Linux completo para el desarrollo en bajo nivel, mientras que VS Code proporciona una experiencia de desarrollo moderna y eficiente.
-
-¡Felicitaciones! Has creado tu primer programa en ensamblador x86-64.
