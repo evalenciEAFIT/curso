@@ -45,6 +45,11 @@ Existen varios tipos de virtualización, cada uno con sus propias característic
 
 A continuación se presenta un menú de navegación para acceder a los archivos disponibles en este directorio:
 
+### 0. **Comando generales de Linux**
+- [**guialinux.md**](./guialinux.md)
+  - Documento introductorio general sobre el uso de Linux
+ 
+
 ### 1. **Introducción General a Ensamblador**
 - [**intro.md**](./intro.md)
   - Documento introductorio general sobre el módulo y su propósito. - ASSEMBLER
