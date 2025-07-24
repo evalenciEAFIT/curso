@@ -36,53 +36,28 @@ Existen varios tipos de virtualización, cada uno con sus propias característic
   * **Desventajas:** Requiere soporte de hardware en el CPU y a menudo debe ser habilitado en la BIOS/UEFI.
 
 
-## Cómo Instalar C y C++ en WSL y Linux
-
-Una vez que tienes tu entorno Linux (ya sea a través de WSL o una instalación nativa), la instalación de los compiladores de C y C++ es sencilla. Utilizaremos \`build-essential\`, un paquete que incluye el compilador GCC (GNU Compiler Collection), G++ (el compilador de C++), make, y otras herramientas esenciales para la compilación.
-
-**Pasos de Instalación:**
-
-* **Abrir la Terminal:**  
-  * Si estás en WSL, abre tu distribución de Linux (por ejemplo, "Ubuntu").  
-  * Si estás en una instalación nativa de Linux, abre la aplicación de Terminal.  
-* **Actualizar la Lista de Paquetes:**  
-  Es una buena práctica actualizar primero la lista de paquetes para asegurarte de que estás obteniendo las últimas versiones:
-
-|  sudo apt update  Se te pedirá tu contraseña de usuario de Linux. Escríbela (no verás los caracteres mientras escribes) y presiona Enter.  |
-| :---- |
-
-* **Instalar \`build-essential\`:**  
-  Ahora, instala el paquete \`build-essential\`:
-
-| sudo apt install build-essential Cuando se te pregunte si deseas continuar (Y/n), escribe \`Y\` y presiona Enter. |
-| :---- |
-
-* **Verificar la Instalación:**  
-  Puedes verificar que GCC y G++ se han instalado correctamente ejecutando los siguientes comandos para ver sus versiones:
-
-|  gcc \--version  g++ \--version          Si ves la información de la versión, ¡los compiladores están listos para usar\! |
-| :---- |
-
 
 ------------------------------------------------------------
+
+
 
 ## Contenido del Módulo
 
 A continuación se presenta un menú de navegación para acceder a los archivos disponibles en este directorio:
 
-### 1. **Introducción General**
+### 1. **Introducción General a Ensamblador**
 - [**intro.md**](./intro.md)
-  - Documento introductorio general sobre el módulo y su propósito. - ASSEMBLE
+  - Documento introductorio general sobre el módulo y su propósito. - ASSEMBLER
+ 
+### 2. **Introducción a C++**
+- [**introC_CPP.md**](./introC_CPP.md)
+  - Guía introductoria a C++, comparaciones con C y conceptos básicos. (c/C++)
 
-### 2. **C y Ensamblador**
+### 3. **C y Ensamblador**
 - [**assembler.md**](./assembler.md)
   - Introducción al lenguaje de ensamblador, ejemplos básicos y conceptos clave.
 - [**CconAsM.md**](./CconAsM.md)
   - Exploración de la relación entre C y ensamblador, incluyendo cómo interactúan ambos lenguajes.
- 
-### 3. **Introducción a C++**
-- [**introC_CPP.md**](./introC_CPP.md)
-  - Guía introductoria a C++, comparaciones con C y conceptos básicos. (c/C++)
 
 ### 4. **Introducción al Kernel**
 - [**intro_kernel.md**](./intro_kernel.md)
