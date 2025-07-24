@@ -696,10 +696,3 @@ cat /etc/SuSE-release            # Información de SUSE
 
 ---
 
-## 🎯 Conclusión
-
-Dominar estos comandos básicos es fundamental para trabajar eficientemente en sistemas Linux. La práctica constante y la experimentación segura te ayudarán a volverte más cómodo con la terminal. Recuerda que siempre puedes usar `man comando` para obtener información detallada sobre cualquier comando.
-
----
-
-**💡 Tip**: Combina comandos usando tuberías y redirecciones para crear flujos de trabajo potentes y automatizados. Los comandos de información del sistema (`uname`, `lsb_release`, `hostnamectl`) son especialmente útiles para diagnosticar problemas y verificar compatibilidad con software.
