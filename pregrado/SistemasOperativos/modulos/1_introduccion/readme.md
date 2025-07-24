@@ -46,7 +46,7 @@ Existen varios tipos de virtualización, cada uno con sus propias característic
 A continuación se presenta un menú de navegación para acceder a los archivos disponibles en este directorio:
 
 ### 0. **Comando generales de Linux**
-- [**guialinux.md**](./guialinux.md)
+- [**guiaLinux.md**](./guiaLinux.md)
   - Documento introductorio general sobre el uso de Linux
  
 
