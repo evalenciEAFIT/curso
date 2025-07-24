@@ -677,9 +677,3 @@ Los kernels reales incluyen muchas más funcionalidades como:
 3. **Seguridad**: Se necesitan mecanismos de protección contra código malicioso
 4. **Concurrencia**: Los kernels reales manejan múltiples CPUs y concurrencia
 5. **Performance**: El código del kernel debe ser altamente optimizado
-
----
-
-## 🎯 Conclusión
-
-Estos ejemplos demuestran los conceptos fundamentales que todo kernel debe implementar. Aunque simplificados, muestran la complejidad inherente a la programación a nivel de sistema y cómo los kernels gestionan los recursos del hardware para múltiples aplicaciones concurrentes.
