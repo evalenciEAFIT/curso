@@ -525,175 +525,359 @@ int main() {
 ### **New y Delete en C++**
 
 ```cpp
-#include <iostream>
-#include <new>  // Para std::bad_alloc - manejo de errores de memoria
-using namespace std;
+#include <iostream>  // QUÉ: Incluye la biblioteca de entrada/salida para consola
+                     // POR QUÉ: Permite usar std::cout para mostrar texto
+                     // CÓMO: Proporciona funciones para impresión formateada
+                     // HACER: Usar para mostrar resultados en pantalla
+#include <new>       // QUÉ: Incluye la biblioteca para manejo de excepciones de memoria
+                     // POR QUÉ: Proporciona std::bad_alloc y std::nothrow
+                     // CÓMO: Permite manejar errores de asignación de memoria
+                     // HACER: Usar std::nothrow para asignaciones seguras
+#include <cstring>   // QUÉ: Incluye la biblioteca para funciones de cadenas estilo C
+                     // POR QUÉ: Necesaria para std::strlen, std::strcpy, std::strcat
+                     // CÓMO: Facilita operaciones con cadenas dinámicas
+                     // HACER: Usar para manipular cadenas estilo C
 
-// EJEMPLO COMPLETO DE GESTIÓN DE MEMORIA EN C++
+// QUÉ: Función para demostrar la gestión de memoria dinámica con tipos básicos y arreglos
+// POR QUÉ: Mostrar cómo asignar, modificar y liberar memoria en C++
+// CÓMO: Usa new/delete con manejo de excepciones y std::nothrow
+// HACER: Ejecutar para entender asignación dinámica y manejo de errores
 void ejemplo_memoria_dinamica_cpp() {
-    cout << "=== GESTIÓN DE MEMORIA DINÁMICA EN C++ ===" << endl << endl;
-    
-    try {
-        // 1. new - ASIGNACIÓN DE MEMORIA PARA TIPOS BÁSICOS
-        // new int(42): asigna memoria para int e inicializa con 42
-        // new double: asigna memoria para double (valor indeterminado)
-        cout << "1. USO DE new PARA TIPOS BÁSICOS:" << endl;
-        int *ptr_entero = new int(42);  // Asignar e inicializar con 42
-        double *ptr_double = new double;  // Solo asignar (valor indeterminado)
-        *ptr_double = 3.14159;  // Asignar valor después
-        
-        cout << "Entero: " << *ptr_entero << endl;
-        cout << "Double: " << *ptr_double << endl;
-        
-        // 2. new[] - ASIGNACIÓN DE ARREGLOS DINÁMICOS
-        // new int[tamano]: asigna memoria para arreglo de tamano enteros
-        // new int[tamano]{1, 2, 3, 4, 5}: inicialización uniforme
-        cout << "\n2. USO DE new[] PARA ARREGLOS:" << endl;
-        int tamano = 5;
-        int *ptr_arreglo = new int[tamano]{1, 2, 3, 4, 5};  // Inicialización uniforme
-        
-        cout << "Arreglo: ";
-        for(int i = 0; i < tamano; i++) {
-            cout << ptr_arreglo[i] << " ";
-        }
-        cout << endl;
-        
-        // MODIFICAR VALORES DEL ARREGLO
-        for(int i = 0; i < tamano; i++) {
-            ptr_arreglo[i] *= 2;  // Multiplicar cada elemento por 2
-        }
-        cout << "Arreglo modificado: ";
-        for(int i = 0; i < tamano; i++) {
-            cout << ptr_arreglo[i] << " ";
-        }
-        cout << endl;
-        
-        // 3. delete y delete[] - LIBERAR MEMORIA
-        // delete ptr: libera memoria asignada con new
-        // delete[] ptr_arreglo: libera memoria de arreglo asignado con new[]
-        cout << "\n3. LIBERANDO MEMORIA:" << endl;
-        delete ptr_entero;      // Para memoria asignada con new (objeto único)
-        delete ptr_double;      // Para memoria asignada con new (objeto único)
-        delete[] ptr_arreglo;   // Para arreglos asignados con new[] (múltiples objetos)
-        
-        ptr_entero = nullptr;   // Buena práctica en C++ (nullptr en lugar de NULL)
-        ptr_double = nullptr;
-        ptr_arreglo = nullptr;
-        cout << "Memoria liberada correctamente" << endl;
-        
-    } catch(const bad_alloc& e) {
-        // MANEJO DE EXCEPCIONES: capturar errores de asignación de memoria
-        cout << "Error de asignación de memoria: " << e.what() << endl;
+    // QUÉ: Imprimir encabezado de la sección
+    // POR QUÉ: Indicar el inicio de la demostración
+    // CÓMO: Usa std::cout con salto de línea para claridad
+    // HACER: Asegurar que la salida sea clara
+    std::cout << "=== GESTIÓN DE MEMORIA DINÁMICA EN C++ ===\n\n";
+
+    // QUÉ: Asignar memoria para tipos básicos usando new
+    // POR QUÉ: Demostrar asignación de variables individuales
+    // CÓMO: Usa new con std::nothrow para evitar excepciones
+    // HACER: Verificar asignación y manejar fallos
+    std::cout << "1. USO DE new PARA TIPOS BÁSICOS:\n";
+    int* ptr_entero = new (std::nothrow) int(42);  // Inicializa con 42
+    if (ptr_entero == nullptr) {
+        // QUÉ: Manejar fallo de asignación
+        // POR QUÉ: Evitar dereferenciar puntero nulo
+        // CÓMO: Imprime error y retorna
+        // HACER: Salir para evitar errores
+        std::cout << "Error: No se pudo asignar memoria para entero\n";
+        return;
     }
+    double* ptr_double = new (std::nothrow) double;  // Sin inicialización
+    if (ptr_double == nullptr) {
+        // QUÉ: Manejar fallo de asignación
+        // POR QUÉ: Evitar memory leaks y errores
+        // CÓMO: Libera memoria previa y retorna
+        // HACER: Asegurar limpieza antes de salir
+        std::cout << "Error: No se pudo asignar memoria para double\n";
+        delete ptr_entero;
+        return;
+    }
+    // QUÉ: Asignar valor al double
+    // POR QUÉ: Inicializar memoria asignada dinámicamente
+    // CÓMO: Desreferencia el puntero para asignar valor
+    // HACER: Usar el puntero para almacenar datos
+    *ptr_double = 3.14159;
+
+    // QUÉ: Mostrar valores asignados
+    // POR QUÉ: Verificar que la asignación e inicialización sean correctas
+    // CÓMO: Usa std::cout para imprimir valores
+    // HACER: Confirmar que los valores son los esperados
+    std::cout << "Entero: " << *ptr_entero << "\n";
+    std::cout << "Double: " << *ptr_double << "\n";
+
+    // QUÉ: Asignar e inicializar un arreglo dinámico
+    // POR QUÉ: Demostrar creación de arreglos con inicialización
+    // CÓMO: Usa new[] con lista de inicialización
+    // HACER: Verificar asignación e inicialización
+    std::cout << "\n2. USO DE new[] PARA ARREGLOS:\n";
+    int tamano = 5;
+    int* ptr_arreglo = new (std::nothrow) int[tamano]{1, 2, 3, 4, 5};
+    if (ptr_arreglo == nullptr) {
+        // QUÉ: Manejar fallo de asignación
+        // POR QUÉ: Evitar errores y memory leaks
+        // CÓMO: Libera memoria previa y retorna
+        // HACER: Asegurar limpieza antes de salir
+        std::cout << "Error: No se pudo asignar memoria para arreglo\n";
+        delete ptr_entero;
+        delete ptr_double;
+        return;
+    }
+
+    // QUÉ: Imprimir valores iniciales del arreglo
+    // POR QUÉ: Verificar inicialización correcta
+    // CÓMO: Recorre el arreglo con un bucle
+    // HACER: Confirmar que los valores son 1, 2, 3, 4, 5
+    std::cout << "Arreglo: ";
+    for (int i = 0; i < tamano; i++) {
+        std::cout << ptr_arreglo[i] << " ";
+    }
+    std::cout << "\n";
+
+    // QUÉ: Modificar valores del arreglo
+    // POR QUÉ: Mostrar cómo actualizar elementos dinámicos
+    // CÓMO: Multiplica cada elemento por 2
+    // HACER: Verificar que los valores se actualicen
+    for (int i = 0; i < tamano; i++) {
+        ptr_arreglo[i] *= 2;
+    }
+    // QUÉ: Imprimir arreglo modificado
+    // POR QUÉ: Confirmar que los valores se duplicaron
+    // CÓMO: Recorre el arreglo con un bucle
+    // HACER: Verificar valores 2, 4, 6, 8, 10
+    std::cout << "Arreglo modificado: ";
+    for (int i = 0; i < tamano; i++) {
+        std::cout << ptr_arreglo[i] << " ";
+    }
+    std::cout << "\n";
+
+    // QUÉ: Liberar memoria asignada
+    // POR QUÉ: Evitar memory leaks
+    // CÓMO: Usa delete para variables y delete[] para arreglos
+    // HACER: Establecer punteros a nullptr tras liberar
+    std::cout << "\n3. LIBERANDO MEMORIA:\n";
+    delete ptr_entero;
+    delete ptr_double;
+    delete[] ptr_arreglo;
+    ptr_entero = nullptr;
+    ptr_double = nullptr;
+    ptr_arreglo = nullptr;
+    std::cout << "Memoria liberada correctamente\n";
 }
 
-// EJEMPLO DE CLASES CON MEMORIA DINÁMICA
+// QUÉ: Clase para manejar cadenas dinámicas
+// POR QUÉ: Demostrar gestión de memoria en objetos con RAII
+// CÓMO: Implementa constructor, copia, asignación y destructor
+// HACER: Usar para gestionar cadenas dinámicas de forma segura
 class GestorStrings {
 private:
-    char* datos;      // Apuntador a datos dinámicos
-    size_t longitud;  // Longitud del string
+    char* datos;      // QUÉ: Puntero a datos dinámicos
+                      // POR QUÉ: Almacena la cadena dinámica
+                      // CÓMO: Apunta a memoria asignada con new
+                      // HACER: Gestionar cuidadosamente para evitar leaks
+    size_t longitud;  // QUÉ: Almacena la longitud de la cadena
+                      // POR QUÉ: Facilitar operaciones con la cadena
+                      // CÓMO: Calculada con std::strlen
+                      // HACER: Actualizar al modificar la cadena
 
 public:
-    // CONSTRUCTOR
-    // GestorStrings(const char* str = ""): constructor con parámetro por defecto
+    // QUÉ: Constructor para inicializar la cadena
+    // POR QUÉ: Crear un objeto con una cadena inicial
+    // CÓMO: Asigna memoria y copia la cadena
+    // HACER: Pasar una cadena inicial o usar valor por defecto
     GestorStrings(const char* str = "") {
-        longitud = strlen(str);  // Calcular longitud del string de entrada
-        datos = new char[longitud + 1];  // +1 para el null terminator '\0'
-        strcpy(datos, str);      // Copiar string a memoria dinámica
-        cout << "Constructor llamado para: " << datos << endl;
-    }
-    
-    // CONSTRUCTOR DE COPIA - MUY IMPORTANTE PARA EVITAR SHALLOW COPY
-    // GestorStrings(const GestorStrings& otro): copia profunda del objeto
-    GestorStrings(const GestorStrings& otro) {
-        longitud = otro.longitud;           // Copiar longitud
-        datos = new char[longitud + 1];     // Asignar nueva memoria
-        strcpy(datos, otro.datos);          // Copiar datos (copia profunda)
-        cout << "Constructor de copia llamado para: " << datos << endl;
-    }
-    
-    // OPERADOR DE ASIGNACIÓN - EVITAR AUTO-ASIGNACIÓN Y MEMORY LEAKS
-    // GestorStrings& operator=(const GestorStrings& otro): asignación segura
-    GestorStrings& operator=(const GestorStrings& otro) {
-        if(this != &otro) {  // Verificar auto-asignación (objeto = objeto)
-            delete[] datos;  // Liberar memoria existente para evitar memory leak
-            longitud = otro.longitud;        // Copiar nueva longitud
-            datos = new char[longitud + 1];  // Asignar nueva memoria
-            strcpy(datos, otro.datos);       // Copiar nuevos datos
-            cout << "Operador de asignación llamado para: " << datos << endl;
+        // QUÉ: Calcular longitud y asignar memoria
+        // POR QUÉ: Asegurar espacio suficiente para la cadena
+        // CÓMO: Usa std::strlen y new con std::nothrow
+        // HACER: Verificar asignación
+        longitud = std::strlen(str);
+        datos = new (std::nothrow) char[longitud + 1];
+        if (datos == nullptr) {
+            std::cout << "Error: No se pudo asignar memoria en constructor\n";
+            longitud = 0;
+            return;
         }
-        return *this;  // Retornar referencia al objeto actual (*this)
+        // QUÉ: Copiar la cadena inicial
+        // POR QUÉ: Inicializar el objeto con datos
+        // CÓMO: Usa std::strcpy para copiar
+        // HACER: Asegurar que la copia sea correcta
+        std::strcpy(datos, str);
+        std::cout << "Constructor llamado para: " << datos << "\n";
     }
-    
-    // DESTRUCTOR - LIBERAR MEMORIA AUTOMÁTICAMENTE AL DESTRUIR OBJETO
-    // ~GestorStrings(): se llama automáticamente al salir de scope
+
+    // QUÉ: Constructor de copia
+    // POR QUÉ: Evitar copias superficiales (shallow copy)
+    // CÓMO: Crea una copia profunda de los datos
+    // HACER: Usar para duplicar objetos de forma segura
+    GestorStrings(const GestorStrings& otro) {
+        // QUÉ: Copiar longitud y asignar nueva memoria
+        // POR QUÉ: Garantizar copia independiente
+        // CÓMO: Usa new y std::strcpy
+        // HACER: Verificar asignación
+        longitud = otro.longitud;
+        datos = new (std::nothrow) char[longitud + 1];
+        if (datos == nullptr) {
+            std::cout << "Error: No se pudo asignar memoria en copia\n";
+            longitud = 0;
+            return;
+        }
+        std::strcpy(datos, otro.datos);
+        std::cout << "Constructor de copia llamado para: " << datos << "\n";
+    }
+
+    // QUÉ: Operador de asignación
+    // POR QUÉ: Permitir asignación segura entre objetos
+    // CÓMO: Libera memoria existente, copia datos
+    // HACER: Verificar auto-asignación y manejar memoria
+    GestorStrings& operator=(const GestorStrings& otro) {
+        // QUÉ: Verificar auto-asignación
+        // POR QUÉ: Evitar liberar y copiar innecesariamente
+        // CÓMO: Compara punteros de objetos
+        // HACER: No modificar si es el mismo objeto
+        if (this != &otro) {
+            // QUÉ: Liberar memoria existente
+            // POR QUÉ: Evitar memory leaks
+            // CÓMO: Usa delete[]
+            // HACER: Asegurar liberación antes de nueva asignación
+            delete[] datos;
+            // QUÉ: Copiar longitud y datos
+            // POR QUÉ: Crear una copia profunda
+            // CÓMO: Usa new y std::strcpy
+            // HACER: Verificar asignación
+            longitud = otro.longitud;
+            datos = new (std::nothrow) char[longitud + 1];
+            if (datos == nullptr) {
+                std::cout << "Error: No se pudo asignar memoria en asignación\n";
+                longitud = 0;
+                return *this;
+            }
+            std::strcpy(datos, otro.datos);
+            std::cout << "Operador de asignación llamado para: " << datos << "\n";
+        }
+        return *this;
+    }
+
+    // QUÉ: Destructor para liberar memoria
+    // POR QUÉ: Evitar memory leaks al destruir el objeto
+    // CÓMO: Usa delete[] y establece puntero a nullptr
+    // HACER: Asegurar que se llame automáticamente al salir del scope
     ~GestorStrings() {
-        cout << "Destructor llamado para: " << datos << endl;
-        delete[] datos;    // Liberar memoria dinámica asignada
-        datos = nullptr;   // Evitar dangling pointer
+        std::cout << "Destructor llamado para: " << (datos ? datos : "nullptr") << "\n";
+        delete[] datos;
+        datos = nullptr;
     }
-    
-    // MÉTODOS DE ACCESO
+
+    // QUÉ: Métodos de acceso para datos y longitud
+    // POR QUÉ: Permitir acceso seguro a los miembros privados
+    // CÓMO: Retorna puntero a datos y longitud
+    // HACER: Usar para consultar estado del objeto
     const char* getDatos() const { return datos; }
     size_t getLongitud() const { return longitud; }
-    
-    // MÉTODO PARA CONCATENAR STRINGS
+
+    // QUÉ: Método para concatenar cadenas
+    // POR QUÉ: Extender la cadena actual con otra
+    // CÓMO: Reasigna memoria, copia y concatena
+    // HACER: Verificar asignación y actualizar longitud
     void concatenar(const char* str) {
-        size_t nueva_longitud = longitud + strlen(str);  // Calcular nueva longitud
-        char* nuevo_datos = new char[nueva_longitud + 1];  // Asignar nueva memoria
-        
-        strcpy(nuevo_datos, datos);    // Copiar datos actuales
-        strcat(nuevo_datos, str);      // Concatenar nuevo string
-        
-        delete[] datos;                // Liberar memoria antigua
-        datos = nuevo_datos;           // Asignar nueva memoria
-        longitud = nueva_longitud;     // Actualizar longitud
+        // QUÉ: Calcular nueva longitud
+        // POR QUÉ: Determinar espacio necesario
+        // CÓMO: Suma longitud actual y nueva cadena
+        // HACER: Asegurar espacio suficiente
+        size_t nueva_longitud = longitud + std::strlen(str);
+        char* nuevo_datos = new (std::nothrow) char[nueva_longitud + 1];
+        if (nuevo_datos == nullptr) {
+            std::cout << "Error: No se pudo asignar memoria para concatenar\n";
+            return;
+        }
+        // QUÉ: Copiar y concatenar datos
+        // POR QUÉ: Actualizar contenido de la cadena
+        // CÓMO: Usa std::strcpy y std::strcat
+        // HACER: Asegurar que la concatenación sea correcta
+        std::strcpy(nuevo_datos, datos);
+        std::strcat(nuevo_datos, str);
+        // QUÉ: Liberar memoria antigua y actualizar
+        // POR QUÉ: Evitar memory leaks
+        // CÓMO: Usa delete[] y actualiza puntero y longitud
+        // HACER: Asegurar que el puntero apunte a nueva memoria
+        delete[] datos;
+        datos = nuevo_datos;
+        longitud = nueva_longitud;
     }
 };
 
+// QUÉ: Función para demostrar uso de la clase GestorStrings
+// POR QUÉ: Mostrar gestión de memoria en objetos con RAII
+// CÓMO: Crea objetos, usa copia, asignación y concatenación
+// HACER: Ejecutar para ver ciclo de vida de objetos
 void ejemplo_clases_con_memoria() {
-    cout << "\n=== CLASES CON MEMORIA DINÁMICA ===" << endl;
-    
+    // QUÉ: Imprimir encabezado de la sección
+    // POR QUÉ: Indicar inicio de la demostración
+    // CÓMO: Usa std::cout para claridad
+    // HACER: Asegurar que la salida sea clara
+    std::cout << "\n=== CLASES CON MEMORIA DINÁMICA ===\n";
+
     {
-        // CREAR OBJETOS EN SCOPE LOCAL
-        GestorStrings str1("Hola");        // Constructor normal
-        GestorStrings str2 = str1;         // Constructor de copia (shallow copy evitada)
-        GestorStrings str3;                // Constructor por defecto
-        str3 = str1;                       // Operador de asignación
-        
-        str1.concatenar(" Mundo");         // Concatenar string
-        cout << "str1 después de concatenar: " << str1.getDatos() << endl;
-        
-        // AL SALIR DEL SCOPE {}, SE LLAMAN AUTOMÁTICAMENTE LOS DESTRUCTORES
+        // QUÉ: Crear objetos en un scope local
+        // POR QUÉ: Demostrar construcción, copia y asignación
+        // CÓMO: Instancia objetos y usa métodos
+        // HACER: Observar cómo se llaman constructores y destructores
+        GestorStrings str1("Hola");
+        GestorStrings str2 = str1;  // Constructor de copia
+        GestorStrings str3;         // Constructor por defecto
+        str3 = str1;                // Operador de asignación
+
+        // QUÉ: Concatenar una cadena
+        // POR QUÉ: Mostrar modificación dinámica
+        // CÓMO: Llama al método concatenar
+        // HACER: Verificar que la cadena se actualice
+        str1.concatenar(" Mundo");
+        std::cout << "str1 después de concatenar: " << str1.getDatos() << "\n";
     }
-    cout << "Objetos destruidos" << endl;
+    // QUÉ: Imprimir mensaje tras salir del scope
+    // POR QUÉ: Confirmar que los destructores se llamaron
+    // CÓMO: Usa std::cout tras el scope
+    // HACER: Verificar que los objetos se destruyeron
+    std::cout << "Objetos destruidos\n";
 }
 
-// EJEMPLO DE MANEJO DE EXCEPCIONES EN MEMORIA
+// QUÉ: Función para demostrar manejo de excepciones en asignación
+// POR QUÉ: Mostrar cómo manejar fallos de memoria
+// CÓMO: Usa try-catch y std::nothrow
+// HACER: Ejecutar para entender manejo de errores
 void ejemplo_excepciones_memoria() {
-    cout << "\n=== MANEJO DE EXCEPCIONES EN MEMORIA ===" << endl;
-    
+    // QUÉ: Imprimir encabezado de la sección
+    // POR QUÉ: Indicar inicio de la demostración
+    // CÓMO: Usa std::cout para claridad
+    // HACER: Asegurar que la salida sea clara
+    std::cout << "\n=== MANEJO DE EXCEPCIONES EN MEMORIA ===\n";
+
+    // QUÉ: Intentar asignar memoria grande con new
+    // POR QUÉ: Probar manejo de excepciones con std::bad_alloc
+    // CÓMO: Usa try-catch para capturar fallo
+    // HACER: Observar cómo se maneja el error
     try {
-        // INTENTAR ASIGNAR MUCHA MEMORIA (PROBABLEMENTE FALLARÁ)
-        size_t gran_tamano = 1000000000000ULL;  // 1TB - muy grande
-        int *ptr_grande = new int[gran_tamano]; // new lanzará bad_alloc si falla
-        
-        // ESTO PROBABLEMENTE LANZARÁ bad_alloc
-        delete[] ptr_grande;  // Liberar si se asignó (no llegará aquí)
-        
-    } catch(const bad_alloc& e) {
-        // CAPTURAR EXCEPCIÓN DE ASIGNACIÓN DE MEMORIA
-        cout << "Capturada excepción de memoria: " << e.what() << endl;
+        size_t gran_tamano = 1000000000000ULL;  // 1TB
+        int* ptr_grande = new int[gran_tamano];
+        std::cout << "Memoria grande asignada (no debería llegar aquí)\n";
+        delete[] ptr_grande;
+    } catch (const std::bad_alloc& e) {
+        // QUÉ: Capturar excepción de asignación
+        // POR QUÉ: Manejar fallos de memoria de forma segura
+        // CÓMO: Imprime mensaje de error
+        // HACER: Verificar que se captura la excepción
+        std::cout << "Capturada excepción de memoria: " << e.what() << "\n";
     }
-    
-    // new(nothrow) - NO LANZA EXCEPCIONES, RETORNA nullptr SI FALLA
-    int *ptr_seguro = new(nothrow) int[1000];  // new con nothrow
-    if(ptr_seguro == nullptr) {
-        cout << "No se pudo asignar memoria (nothrow)" << endl;
+
+    // QUÉ: Asignar memoria con std::nothrow
+    // POR QUÉ: Demostrar asignación sin excepciones
+    // CÓMO: Usa new(std::nothrow) y verifica nullptr
+    // HACER: Verificar resultado de la asignación
+    int* ptr_seguro = new (std::nothrow) int[1000];
+    if (ptr_seguro == nullptr) {
+        // QUÉ: Manejar fallo de asignación
+        // POR QUÉ: Evitar errores con puntero nulo
+        // CÓMO: Imprime mensaje de error
+        // HACER: Confirmar manejo seguro
+        std::cout << "No se pudo asignar memoria (nothrow)\n";
     } else {
-        cout << "Memoria asignada con éxito (nothrow)" << endl;
-        delete[] ptr_seguro;  // Liberar memoria asignada
+        // QUÉ: Confirmar asignación exitosa
+        // POR QUÉ: Mostrar que la memoria se asignó
+        // CÓMO: Imprime mensaje y libera memoria
+        // HACER: Liberar memoria para evitar leaks
+        std::cout << "Memoria asignada con éxito (nothrow)\n";
+        delete[] ptr_seguro;
     }
+}
+
+// QUÉ: Función principal, punto de entrada del programa
+// POR QUÉ: Requerida por el compilador para iniciar ejecución
+// CÓMO: Llama a las funciones de demostración
+// HACER: Ejecutar todas las demostraciones en orden
+int main() {
+    ejemplo_memoria_dinamica_cpp();
+    ejemplo_clases_con_memoria();
+    ejemplo_excepciones_memoria();
+    return 0;
 }
 ```
 
