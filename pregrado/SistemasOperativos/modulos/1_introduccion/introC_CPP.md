@@ -1261,77 +1261,164 @@ void ejemplo_seguro() {
 ### **Definición y Uso Básico**
 
 ```c
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include <iostream>   // Qué: Biblioteca estándar de E/S
+                      // Para qué: Usar cout, cin y otras funciones de E/S
+#include <memory>     // Qué: Smart pointers
+                      // Para qué: Gestión automática de memoria (unique_ptr, shared_ptr)
+#include <fstream>    // Qué: Manejo de archivos
+                      // Para qué: Leer/escribir archivos con RAII
+#include <mutex>      // Qué: Sincronización de hilos
+                      // Para qué: Proteger secciones críticas
+#include <vector>     // Qué: Contenedor dinámico
+                      // Para qué: Almacenar colecciones de objetos
+#include <string>     // Qué: Cadena de caracteres segura
+                      // Para qué: Manejo moderno de strings
+#include <cstdio>     // Qué: Funciones de C estándar
+                      // Para qué: Manejar FILE* para integración con código C
+#include <stdexcept>  // Qué: Excepciones estándar
+                      // Para qué: Lanzar errores con mensajes descriptivos
 
-// DEFINICIÓN DE ESTRUCTURA BÁSICA
-// struct Persona: define una estructura llamada Persona
-struct Persona {
-    char nombre[50];  // Array de caracteres para el nombre (máximo 49 caracteres + '\0')
-    int edad;         // Entero para la edad
-    float altura;     // Flotante para la altura
-};
-
-// TYPEDEF PARA SIMPLIFICAR - CREA UN ALIAS PARA LA ESTRUCTURA
-// typedef struct {...} Coche: crea alias 'Coche' para la estructura
-typedef struct {
-    char marca[30];      // Marca del coche (máximo 29 caracteres)
-    char modelo[30];     // Modelo del coche (máximo 29 caracteres)
-    int anio;            // Año del coche
-    float precio;        // Precio del coche
-} Coche;
-
-// ESTRUCTURAS ANIDADAS - UNA ESTRUCTURA QUE CONTIENE OTRAS ESTRUCTURAS
-// typedef struct {...} Conductor: estructura que combina Persona y Coche
-typedef struct {
-    struct Persona conductor;  // Persona como miembro (usando struct Persona)
-    Coche vehiculo;            // Coche como miembro (usando typedef Coche)
-    int velocidad_actual;      // Velocidad actual del conductor
-} Conductor;
-
-void ejemplo_estructuras_basicas() {
-    // DECLARACIÓN E INICIALIZACIÓN DE ESTRUCTURAS
-    // struct Persona juan = {...}: inicializar estructura con valores
-    struct Persona juan = {"Juan Pérez", 25, 1.75};
-    // Coche mi_coche = {...}: inicializar estructura typedef con valores
-    Coche mi_coche = {"Toyota", "Corolla", 2020, 25000.0};
+// Ejemplo 1: Gestión de memoria con smart pointers
+void ejemplo_memoria_raii() {
+    // Qué: Creación de un unique_ptr
+    // Para qué: Demostrar gestión automática de memoria
+    // Cómo: Usando make_unique para asignación segura
+    // Hacer: Usar siempre smart pointers en lugar de new/delete
     
-    // ACCESO A MIEMBROS DE ESTRUCTURAS
-    // estructura.miembro: acceso a miembros usando operador punto
-    printf("Persona: %s, Edad: %d, Altura: %.2f\n", 
-           juan.nombre, juan.edad, juan.altura);
-    
-    printf("Coche: %s %s (%d) - $%.2f\n", 
-           mi_coche.marca, mi_coche.modelo, 
-           mi_coche.anio, mi_coche.precio);
-    
-    // MODIFICACIÓN DE VALORES EN ESTRUCTURAS
-    // strcpy(destino, origen): copiar string a array de caracteres
-    strcpy(juan.nombre, "Juan García");  // Modificar nombre
-    juan.edad = 26;                      // Modificar edad
-    
-    printf("Persona modificada: %s, Edad: %d\n", 
-           juan.nombre, juan.edad);
+    std::unique_ptr<int> ptr_int = std::make_unique<int>(42);
+    std::cout << "Valor: " << *ptr_int << std::endl;
+    // El destructor libera automáticamente la memoria aquí
 }
 
-// APUNTADORES A ESTRUCTURAS
-void ejemplo_apuntadores_estructuras() {
-    struct Persona *ptr_persona;        // Apuntador a estructura Persona
-    struct Persona maria = {"María López", 30, 1.65};  // Estructura normal
+// Ejemplo 2: Gestión de archivos con RAII
+void ejemplo_archivos_raii() {
+    // Qué: Uso de ofstream
+    // Para qué: Mostrar manejo seguro de archivos
+    // Cómo: El destructor cierra el archivo automáticamente
+    // Hacer: Preferir streams de C++ sobre funciones de C
     
-    ptr_persona = &maria;  // Asignar dirección de maria al apuntador
+    std::ofstream archivo("ejemplo.txt");
+    if (archivo.is_open()) {
+        archivo << "Datos guardados automáticamente\n";
+        // No necesita close() explícito - RAII lo maneja
+    }
+}
+
+// Ejemplo 3: Gestión de mutex con RAII
+void ejemplo_mutex_raii() {
+    // Qué: Uso de lock_guard
+    // Para qué: Sincronización segura entre hilos
+    // Cómo: Bloquea en construcción, desbloquea en destrucción
+    // Hacer: Usar siempre RAII para manejo de mutex
     
-    // DOS FORMAS DE ACCEDER A MIEMBROS CON APUNTADORES
-    // (*ptr_persona).nombre: sintaxis explícita (desreferenciar y acceder)
-    printf("Nombre: %s\n", (*ptr_persona).nombre);  // Sintaxis explícita
-    // ptr_persona->edad: sintaxis flecha (más común y legible)
-    printf("Edad: %d\n", ptr_persona->edad);        // Sintaxis flecha (más común)
+    static std::mutex mtx;
     
-    // MODIFICACIÓN USANDO APUNTADOR
-    // ptr_persona->altura = 1.68: modificar miembro a través de apuntador
-    ptr_persona->altura = 1.68;  // Modificar altura usando apuntador
-    printf("Altura modificada: %.2f\n", ptr_persona->altura);
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        std::cout << "Sección crítica protegida\n";
+        // Mutex se libera automáticamente al salir del ámbito
+    }
+}
+
+// Ejemplo 4: RAII para recursos estilo C (FILE*)
+class FileRAII {
+    // Qué: Wrapper RAII para FILE*
+    // Para qué: Integrar recursos C en paradigma RAII
+    // Cómo: Constructor abre, destructor cierra
+    // Hacer: Crear wrappers para recursos no-RAII
+    
+    FILE* file;
+public:
+    FileRAII(const char* filename, const char* mode) 
+        : file(fopen(filename, mode)) {
+        if (!file) throw std::runtime_error("No se pudo abrir el archivo");
+    }
+    
+    ~FileRAII() {
+        if (file) fclose(file);
+    }
+    
+    void write(const std::string& data) {
+        if (fputs(data.c_str(), file) == EOF) {
+            throw std::runtime_error("Error al escribir");
+        }
+    }
+};
+
+void ejemplo_file_raii() {
+    // Qué: Uso del wrapper FileRAII
+    // Para qué: Manejo seguro de archivos estilo C
+    // Cómo: Mediante bloque try-catch
+    // Hacer: Siempre usar try-catch con recursos
+    
+    try {
+        FileRAII archivo("datos.txt", "w");
+        archivo.write("Datos guardados con RAII\n");
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+}
+
+// Ejemplo 5: Estructuras mejoradas con RAII
+struct Persona {
+    // Qué: Estructura con miembros RAII
+    // Para qué: Mostrar diseño moderno de estructuras
+    // Cómo: Usando std::string y constructor
+    // Hacer: Preferir std::string sobre char[]
+    
+    std::string nombre;
+    int edad;
+    float altura;
+    
+    Persona(const std::string& n, int e, float a) 
+        : nombre(n), edad(e), altura(a) {}
+    
+    void mostrar() const {
+        std::cout << nombre << ", " << edad << " años, " 
+                  << altura << "m\n";
+    }
+};
+
+void ejemplo_estructuras_mejoradas() {
+    // Qué: Uso de vector y estructuras RAII
+    // Para qué: Demostrar colecciones seguras
+    // Cómo: Usando emplace_back para construcción in-place
+    // Hacer: Usar contenedores STL con tipos RAII
+    
+    Persona juan("Juan Pérez", 25, 1.75f);
+    juan.mostrar();
+    
+    std::vector<Persona> personas;
+    personas.emplace_back("María López", 30, 1.65f);
+    personas.emplace_back("Carlos Ruiz", 28, 1.80f);
+    
+    for (const auto& p : personas) {
+        p.mostrar();
+    }
+}
+
+int main() {
+    // Qué: Función principal
+    // Para qué: Ejecutar ejemplos demostrativos
+    // Cómo: Llamando a cada función de ejemplo
+    // Hacer: Organizar código en funciones específicas
+    
+    std::cout << "=== Ejemplo RAII Memoria ===\n";
+    ejemplo_memoria_raii();
+    
+    std::cout << "\n=== Ejemplo RAII Archivos ===\n";
+    ejemplo_archivos_raii();
+    
+    std::cout << "\n=== Ejemplo RAII Mutex ===\n";
+    ejemplo_mutex_raii();
+    
+    std::cout << "\n=== Ejemplo RAII FILE* ===\n";
+    ejemplo_file_raii();
+    
+    std::cout << "\n=== Ejemplo Estructuras Mejoradas ===\n";
+    ejemplo_estructuras_mejoradas();
+    
+    return 0;
 }
 ```
 
