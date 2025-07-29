@@ -204,176 +204,321 @@ int main() {
 
 ### **Malloc, Calloc y Free en C**
 
-```c
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+```c++
+#include <iostream>  // QUÉ: Incluye la biblioteca de entrada/salida para operaciones de consola
+                     // POR QUÉ: Necesaria para usar std::cout y mostrar texto en pantalla
+                     // CÓMO: Proporciona funciones para impresión formateada
+#include <cstdlib>   // QUÉ: Incluye la biblioteca estándar para gestión de memoria
+                     // POR QUÉ: Proporciona std::nothrow para manejar fallos de asignación
+                     // CÓMO: Permite usar new/delete con manejo seguro de errores
+#include <cstring>   // QUÉ: Incluye la biblioteca para manipulación de cadenas estilo C
+                     // POR QUÉ: Necesaria para funciones como std::strcpy y std::strcat
+                     // CÓMO: Facilita operaciones con cadenas de caracteres
 
-// EJEMPLO COMPLETO DE GESTIÓN DE MEMORIA EN C
-void ejemplo_memoria_dinamica_c() {
-    printf("=== GESTIÓN DE MEMORIA DINÁMICA EN C ===\n\n");
+// QUÉ: Función para demostrar la gestión de memoria dinámica en C++
+// POR QUÉ: Mostrar cómo asignar, modificar y liberar memoria dinámicamente
+// CÓMO: Usa new/delete para enteros y arreglos, con verificación de errores
+// HACER: Ejecutar para entender la asignación dinámica y evitar memory leaks
+void ejemplo_memoria_dinamica_cpp() {
+    // QUÉ: Imprimir encabezado de la sección
+    // POR QUÉ: Indicar claramente el inicio de la demostración
+    // CÓMO: Usa std::cout para mostrar texto formateado
+    // HACER: Asegurar que el usuario identifique la sección
+    std::cout << "=== GESTIÓN DE MEMORIA DINÁMICA EN C++ ===\n\n";
     
-    // 1. malloc() - ASIGNACIÓN DE MEMORIA SIN INICIALIZAR
-    // malloc(sizeof(int)): solicita memoria para un entero
-    // (int*)malloc(sizeof(int)): casteo a apuntador a entero
-    printf("1. USO DE malloc():\n");
-    int *ptr_entero = (int*)malloc(sizeof(int));
-    if(ptr_entero == NULL) {
-        // VERIFICACIÓN DE ERROR: malloc retorna NULL si no hay memoria
-        printf("Error: No se pudo asignar memoria\n");
+    // QUÉ: Asignar memoria para un solo entero con new
+    // POR QUÉ: Demostrar asignación dinámica de una variable
+    // CÓMO: Usa new con std::nothrow para evitar excepciones en fallo
+    // HACER: Verificar siempre si la asignación fue exitosa
+    std::cout << "1. USO DE new:\n";
+    int* ptr_entero = new (std::nothrow) int;
+    if (ptr_entero == nullptr) {
+        // QUÉ: Manejar fallo de asignación
+        // POR QUÉ: Evitar dereferenciar un puntero nulo
+        // CÓMO: Imprime mensaje de error y retorna
+        // HACER: Salir de la función para evitar errores
+        std::cout << "Error: No se pudo asignar memoria\n";
         return;
     }
-    *ptr_entero = 100;  // Asignar valor al espacio de memoria reservado
-    printf("Valor asignado con malloc: %d\n", *ptr_entero);
+    // QUÉ: Asignar un valor al espacio reservado
+    // POR QUÉ: Mostrar cómo usar memoria dinámica
+    // CÓMO: Desreferencia el puntero para asignar un valor
+    // HACER: Usar el puntero para almacenar datos
+    *ptr_entero = 100;
+    std::cout << "Valor asignado con new: " << *ptr_entero << "\n";
     
-    // 2. calloc() - ASIGNACIÓN E INICIALIZACIÓN A CERO
-    // calloc(tamano, sizeof(int)): asigna tamano*sizeof(int) bytes inicializados a 0
-    printf("\n2. USO DE calloc():\n");
+    // QUÉ: Asignar e inicializar un arreglo de enteros
+    // POR QUÉ: Demostrar asignación de arreglos con inicialización a cero
+    // CÓMO: Usa new[] con inicialización de llaves para valores en cero
+    // HACER: Verificar que el arreglo se inicialice correctamente
+    std::cout << "\n2. USO DE new[]:\n";
     int tamano = 5;
-    int *ptr_arreglo = (int*)calloc(tamano, sizeof(int));
-    if(ptr_arreglo == NULL) {
-        printf("Error: No se pudo asignar memoria\n");
-        free(ptr_entero);  // Liberar memoria previa antes de salir
+    int* ptr_arreglo = new (std::nothrow) int[tamano]{};
+    if (ptr_arreglo == nullptr) {
+        // QUÉ: Manejar fallo de asignación del arreglo
+        // POR QUÉ: Evitar memory leaks y errores
+        // CÓMO: Libera memoria previa y retorna
+        // HACER: Asegurar limpieza antes de salir
+        std::cout << "Error: No se pudo asignar memoria\n";
+        delete ptr_entero;
         return;
     }
     
-    printf("Arreglo inicializado con calloc: ");
-    for(int i = 0; i < tamano; i++) {
-        printf("%d ", ptr_arreglo[i]);  // Todos deben ser 0 por calloc
+    // QUÉ: Imprimir valores iniciales del arreglo
+    // POR QUÉ: Verificar que new[] inicializó a cero
+    // CÓMO: Recorre el arreglo e imprime cada elemento
+    // HACER: Confirmar que todos los valores son cero
+    std::cout << "Arreglo inicializado con new[]: ";
+    for (int i = 0; i < tamano; i++) {
+        std::cout << ptr_arreglo[i] << " ";
     }
-    printf("\n");
+    std::cout << "\n";
     
-    // MODIFICAR VALORES DEL ARREGLO
-    for(int i = 0; i < tamano; i++) {
-        ptr_arreglo[i] = (i + 1) * 10;  // Asignar valores 10, 20, 30, 40, 50
+    // QUÉ: Modificar valores del arreglo
+    // POR QUÉ: Mostrar cómo actualizar un arreglo dinámico
+    // CÓMO: Asigna valores (10, 20, 30, 40, 50) en un bucle
+    // HACER: Usar índices para modificar elementos
+    for (int i = 0; i < tamano; i++) {
+        ptr_arreglo[i] = (i + 1) * 10;
     }
-    printf("Arreglo modificado: ");
-    for(int i = 0; i < tamano; i++) {
-        printf("%d ", ptr_arreglo[i]);
+    // QUÉ: Imprimir arreglo modificado
+    // POR QUÉ: Mostrar los nuevos valores
+    // CÓMO: Recorre el arreglo e imprime cada elemento
+    // HACER: Verificar que los valores se actualizaron
+    std::cout << "Arreglo modificado: ";
+    for (int i = 0; i < tamano; i++) {
+        std::cout << ptr_arreglo[i] << " ";
     }
-    printf("\n");
+    std::cout << "\n";
     
-    // 3. realloc() - REASIGNAR MEMORIA (EXPANDIR O REDUCIR)
-    // realloc(ptr_arreglo, tamano * sizeof(int)): cambia tamaño del bloque
-    printf("\n3. USO DE realloc():\n");
-    tamano = 10;  // Queremos expandir a 10 elementos
-    ptr_arreglo = (int*)realloc(ptr_arreglo, tamano * sizeof(int));
-    if(ptr_arreglo == NULL) {
-        printf("Error: No se pudo reasignar memoria\n");
-        free(ptr_entero);
+    // QUÉ: Reasignar memoria para un arreglo más grande
+    // POR QUÉ: Demostrar cómo expandir un arreglo dinámico
+    // CÓMO: Crea un nuevo arreglo, copia datos y libera el viejo
+    // HACER: Manejar cuidadosamente la copia y liberación
+    std::cout << "\n3. USO DE REASIGNACIÓN:\n";
+    int nuevo_tamano = 10;
+    int* temp_arreglo = new (std::nothrow) int[nuevo_tamano]{};
+    if (temp_arreglo == nullptr) {
+        // QUÉ: Manejar fallo de reasignación
+        // POR QUÉ: Evitar memory leaks y errores
+        // CÓMO: Libera memoria existente y retorna
+        // HACER: Asegurar limpieza antes de salir
+        std::cout << "Error: No se pudo reasignar memoria\n";
+        delete ptr_entero;
+        delete[] ptr_arreglo;
         return;
     }
     
-    // COMPLETAR NUEVOS ELEMENTOS
-    for(int i = 5; i < tamano; i++) {
-        ptr_arreglo[i] = (i + 1) * 10;  // Asignar valores 60, 70, 80, 90, 100
+    // QUÉ: Copiar datos existentes al nuevo arreglo
+    // POR QUÉ: Preservar los valores originales
+    // CÓMO: Copia elemento por elemento del arreglo viejo
+    // HACER: Asegurar que todos los datos se transfieran
+    for (int i = 0; i < tamano; i++) {
+        temp_arreglo[i] = ptr_arreglo[i];
     }
-    printf("Arreglo expandido: ");
-    for(int i = 0; i < tamano; i++) {
-        printf("%d ", ptr_arreglo[i]);
+    // QUÉ: Inicializar nuevos elementos
+    // POR QUÉ: Asignar valores significativos a la nueva memoria
+    // CÓMO: Asigna valores (60, 70, 80, 90, 100) a elementos nuevos
+    // HACER: Completar el arreglo expandido
+    for (int i = tamano; i < nuevo_tamano; i++) {
+        temp_arreglo[i] = (i + 1) * 10;
     }
-    printf("\n");
+    // QUÉ: Liberar arreglo viejo y actualizar puntero
+    // POR QUÉ: Evitar memory leaks y usar nueva memoria
+    // CÓMO: Usa delete[] y asigna el nuevo arreglo al puntero
+    // HACER: Asegurar que el puntero apunte a la nueva memoria
+    delete[] ptr_arreglo;
+    ptr_arreglo = temp_arreglo;
+    tamano = nuevo_tamano;
     
-    // 4. LIBERAR MEMORIA - MUY IMPORTANTE PARA EVITAR MEMORY LEAKS
-    // free(ptr): libera el bloque de memoria apuntado por ptr
-    printf("\n4. LIBERANDO MEMORIA:\n");
-    free(ptr_entero);       // Liberar memoria de entero individual
-    free(ptr_arreglo);      // Liberar memoria del arreglo
-    ptr_entero = NULL;      // Buena práctica: evitar dangling pointers
-    ptr_arreglo = NULL;     // Buena práctica: evitar dangling pointers
-    printf("Memoria liberada correctamente\n");
+    // QUÉ: Imprimir arreglo expandido
+    // POR QUÉ: Verificar reasignación y nuevos valores
+    // CÓMO: Recorre el arreglo e imprime cada elemento
+    // HACER: Confirmar que la expansión fue exitosa
+    std::cout << "Arreglo expandido: ";
+    for (int i = 0; i < tamano; i++) {
+        std::cout << ptr_arreglo[i] << " ";
+    }
+    std::cout << "\n";
+    
+    // QUÉ: Liberar toda la memoria asignada
+    // POR QUÉ: Evitar memory leaks
+    // CÓMO: Usa delete para el entero y delete[] para el arreglo
+    // HACER: Establecer punteros a nullptr tras liberar
+    std::cout << "\n4. LIBERANDO MEMORIA:\n";
+    delete ptr_entero;
+    delete[] ptr_arreglo;
+    ptr_entero = nullptr;
+    ptr_arreglo = nullptr;
+    std::cout << "Memoria liberada correctamente\n";
 }
 
-// EJEMPLO DE MANEJO DE STRINGS DINÁMICOS
+// QUÉ: Función para demostrar manejo de cadenas dinámicas estilo C
+// POR QUÉ: Mostrar gestión de memoria con cadenas
+// CÓMO: Usa new/delete con funciones de cadenas estilo C
+// HACER: Ejecutar para entender manipulación de cadenas dinámicas
 void ejemplo_strings_dinamicos() {
-    printf("\n=== STRINGS DINÁMICOS ===\n");
+    // QUÉ: Imprimir encabezado de la sección
+    // POR QUÉ: Indicar inicio de la demostración de cadenas
+    // CÓMO: Usa std::cout para mostrar texto
+    // HACER: Asegurar claridad en la salida
+    std::cout << "\n=== STRINGS DINÁMICOS ===\n";
     
-    // ASIGNAR MEMORIA PARA UN STRING DINÁMICO
-    // malloc(50 * sizeof(char)): espacio para 50 caracteres
-    char *nombre = (char*)malloc(50 * sizeof(char));
-    if(nombre == NULL) {
-        printf("Error de memoria\n");
+    // QUÉ: Asignar memoria para una cadena estilo C
+    // POR QUÉ: Almacenar una cadena dinámica
+    // CÓMO: Usa new para un arreglo de 50 caracteres
+    // HACER: Verificar si la asignación fue exitosa
+    char* nombre = new (std::nothrow) char[50];
+    if (nombre == nullptr) {
+        // QUÉ: Manejar fallo de asignación
+        // POR QUÉ: Evitar errores de puntero nulo
+        // CÓMO: Imprime error y retorna
+        // HACER: Salir para evitar problemas
+        std::cout << "Error de memoria\n";
         return;
     }
     
-    // COPIAR STRING A MEMORIA DINÁMICA
-    // strcpy(destino, origen): copia string origen a destino
-    strcpy(nombre, "Juan Pérez");
-    printf("Nombre: %s\n", nombre);
+    // QUÉ: Copiar una cadena a la memoria asignada
+    // POR QUÉ: Inicializar la cadena dinámica
+    // CÓMO: Usa std::strcpy para copiar "Juan Pérez"
+    // HACER: Asegurar que la copia sea correcta
+    std::strcpy(nombre, "Juan Pérez");
+    std::cout << "Nombre: " << nombre << "\n";
     
-    // REASIGNAR PARA UN STRING MÁS LARGO
-    // realloc(nombre, 100 * sizeof(char)): expandir a 100 caracteres
-    nombre = (char*)realloc(nombre, 100 * sizeof(char));
-    if(nombre == NULL) {
-        printf("Error de realloc\n");
+    // QUÉ: Reasignar memoria para una cadena más larga
+    // POR QUÉ: Permitir almacenar una cadena más extensa
+    // CÓMO: Crea nuevo arreglo, copia y concatena
+    // HACER: Verificar fallo de asignación
+    char* temp_nombre = new (std::nothrow) char[100];
+    if (temp_nombre == nullptr) {
+        // QUÉ: Manejar fallo de reasignación
+        // POR QUÉ: Evitar memory leaks
+        // CÓMO: Libera memoria original y retorna
+        // HACER: Asegurar limpieza antes de salir
+        std::cout << "Error de realloc\n";
+        delete[] nombre;
         return;
     }
     
-    // CONCATENAR STRING
-    // strcat(destino, origen): concatena origen al final de destino
-    strcat(nombre, " - Desarrollador Senior");
-    printf("Nombre actualizado: %s\n", nombre);
+    // QUÉ: Copiar y concatenar cadenas
+    // POR QUÉ: Actualizar la cadena con texto adicional
+    // CÓMO: Usa std::strcpy y std::strcat
+    // HACER: Asegurar que la concatenación sea correcta
+    std::strcpy(temp_nombre, nombre);
+    std::strcat(temp_nombre, " - Desarrollador Senior");
+    // QUÉ: Liberar cadena vieja y actualizar puntero
+    // POR QUÉ: Evitar memory leaks y usar nueva memoria
+    // CÓMO: Usa delete[] y asigna nuevo arreglo
+    // HACER: Asegurar que el puntero apunte a la nueva memoria
+    delete[] nombre;
+    nombre = temp_nombre;
+    std::cout << "Nombre actualizado: " << nombre << "\n";
     
-    // LIBERAR MEMORIA DEL STRING
-    free(nombre);
-    nombre = NULL;  // Evitar dangling pointer
-    printf("String dinámico liberado\n");
+    // QUÉ: Liberar memoria de la cadena
+    // POR QUÉ: Evitar memory leaks
+    // CÓMO: Usa delete[] y establece puntero a nullptr
+    // HACER: Confirmar liberación para evitar dangling pointers
+    delete[] nombre;
+    nombre = nullptr;
+    std::cout << "String dinámico liberado\n";
 }
 
-// EJEMPLO DE MATRICES DINÁMICAS
+// QUÉ: Función para demostrar asignación de matrices dinámicas
+// POR QUÉ: Mostrar cómo crear y gestionar una matriz 2D
+// CÓMO: Usa un arreglo de punteros para filas, cada una con columnas
+// HACER: Ejecutar para entender matrices dinámicas
 void ejemplo_matrices_dinamicas() {
-    printf("\n=== MATRICES DINÁMICAS ===\n");
+    // QUÉ: Imprimir encabezado de la sección
+    // POR QUÉ: Indicar inicio de la demostración de matrices
+    // CÓMO: Usa std::cout para mostrar texto
+    // HACER: Asegurar claridad en la salida
+    std::cout << "\n=== MATRICES DINÁMICAS ===\n";
     
+    // QUÉ: Definir dimensiones de la matriz
+    // POR QUÉ: Crear una matriz 3x4
+    // CÓMO: Declara variables para filas y columnas
+    // HACER: Ajustar dimensiones según necesidad
     int filas = 3, columnas = 4;
     
-    // MÉTODO 1: MATRIZ DE APUNTADORES A FILAS
-    // malloc(filas * sizeof(int*)): array de apuntadores a filas
-    int **matriz = (int**)malloc(filas * sizeof(int*));
-    if(matriz == NULL) {
-        printf("Error asignando filas\n");
+    // QUÉ: Asignar arreglo de punteros a filas
+    // POR QUÉ: Almacenar punteros a cada fila de la matriz
+    // CÓMO: Usa new para un arreglo de punteros a enteros
+    // HACER: Verificar si la asignación fue exitosa
+    int** matriz = new (std::nothrow) int*[filas];
+    if (matriz == nullptr) {
+        // QUÉ: Manejar fallo de asignación
+        // POR QUÉ: Evitar errores de puntero nulo
+        // CÓMO: Imprime error y retorna
+        // HACER: Salir para evitar problemas
+        std::cout << "Error asignando filas\n";
         return;
     }
     
-    // ASIGNAR CADA FILA INDIVIDUALMENTE
-    for(int i = 0; i < filas; i++) {
-        matriz[i] = (int*)malloc(columnas * sizeof(int));  // Asignar columna i
-        if(matriz[i] == NULL) {
-            printf("Error asignando columna %d\n", i);
-            // LIBERAR MEMORIA PREVIAMENTE ASIGNADA EN CASO DE ERROR
-            for(int j = 0; j < i; j++) {
-                free(matriz[j]);  // Liberar filas ya asignadas
+    // QUÉ: Asignar memoria para cada fila
+    // POR QUÉ: Crear espacio para las columnas de cada fila
+    // CÓMO: Usa new para cada fila, inicializando a cero
+    // HACER: Verificar fallos y liberar memoria previa si ocurre
+    for (int i = 0; i < filas; i++) {
+        matriz[i] = new (std::nothrow) int[columnas]{};
+        if (matriz[i] == nullptr) {
+            // QUÉ: Manejar fallo de asignación de columna
+            // POR QUÉ: Evitar memory leaks
+            // CÓMO: Libera filas ya asignadas y el arreglo de punteros
+            // HACER: Asegurar limpieza antes de salir
+            std::cout << "Error asignando columna " << i << "\n";
+            for (int j = 0; j < i; j++) {
+                delete[] matriz[j];
             }
-            free(matriz);         // Liberar array de apuntadores
+            delete[] matriz;
             return;
         }
     }
     
-    // INICIALIZAR MATRIZ CON VALORES SECUENCIALES
+    // QUÉ: Inicializar matriz con valores secuenciales
+    // POR QUÉ: Llenar la matriz con datos significativos
+    // CÓMO: Usa bucles anidados para asignar valores 1, 2, 3, ...
+    // HACER: Asegurar que los valores se asignen correctamente
     int valor = 1;
-    for(int i = 0; i < filas; i++) {
-        for(int j = 0; j < columnas; j++) {
-            matriz[i][j] = valor++;  // Asignar valores 1, 2, 3, ...
+    for (int i = 0; i < filas; i++) {
+        for (int j = 0; j < columnas; j++) {
+            matriz[i][j] = valor++;
         }
     }
     
-    // IMPRIMIR MATRIZ
-    printf("Matriz %dx%d:\n", filas, columnas);
-    for(int i = 0; i < filas; i++) {
-        for(int j = 0; j < columnas; j++) {
-            printf("%3d ", matriz[i][j]);  // Formato de 3 caracteres
+    // QUÉ: Imprimir la matriz
+    // POR QUÉ: Mostrar el contenido de la matriz
+    // CÓMO: Usa bucles anidados con formato de 3 caracteres
+    // HACER: Verificar que la matriz se muestre correctamente
+    std::cout << "Matriz " << filas << "x" << columnas << ":\n";
+    for (int i = 0; i < filas; i++) {
+        for (int j = 0; j < columnas; j++) {
+            std::cout.width(3);
+            std::cout << matriz[i][j] << " ";
         }
-        printf("\n");
+        std::cout << "\n";
     }
     
-    // LIBERAR MEMORIA (IMPORTANTE: EN ORDEN INVERSO)
-    // Primero liberar cada fila individualmente
-    for(int i = 0; i < filas; i++) {
-        free(matriz[i]);  // Liberar cada fila
+    // QUÉ: Liberar memoria de la matriz
+    // POR QUÉ: Evitar memory leaks
+    // CÓMO: Libera cada fila y luego el arreglo de punteros
+    // HACER: Establecer puntero a nullptr tras liberar
+    for (int i = 0; i < filas; i++) {
+        delete[] matriz[i];
     }
-    // Luego liberar el array de apuntadores
-    free(matriz);         // Liberar array de apuntadores a filas
-    matriz = NULL;        // Evitar dangling pointer
-    printf("Matriz dinámica liberada\n");
+    delete[] matriz;
+    matriz = nullptr;
+    std::cout << "Matriz dinámica liberada\n";
+}
+
+// QUÉ: Función principal, punto de entrada del programa
+// POR QUÉ: Requerida por el compilador para iniciar la ejecución
+// CÓMO: Llama a las funciones de demostración y retorna 0
+// HACER: Ejecutar todas las demostraciones en orden
+int main() {
+    ejemplo_memoria_dinamica_cpp();
+    ejemplo_strings_dinamicos();
+    ejemplo_matrices_dinamicas();
+    return 0;
 }
 ```
 
