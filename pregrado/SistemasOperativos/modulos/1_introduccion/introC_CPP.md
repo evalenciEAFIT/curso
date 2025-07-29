@@ -1204,54 +1204,55 @@ int main() {
     ejemplo_raii();
     ejemplo_manejo_seguro();
     return 0;
-}```
-
-Nota: 
-**RAII (Resource Acquisition Is Initialization)** es un paradigma de programación utilizado en lenguajes como C++ para gestionar recursos de manera segura y automática. Aunque no es un concepto exclusivo de los sistemas operativos, es ampliamente utilizado en el desarrollo de software que interactúa con recursos del sistema operativo (como memoria, archivos, sockets, mutexes, etc.).
-
-### **RAII en Sistemas Operativos**
-En el contexto de los sistemas operativos, RAII ayuda a manejar recursos del sistema de forma que:
-1. **La adquisición del recurso se realiza durante la inicialización de un objeto** (generalmente en el constructor).
-2. **La liberación del recurso ocurre automáticamente cuando el objeto sale de su ámbito** (generalmente en el destructor).
-
-Esto previene fugas de recursos (*memory leaks*, *handle leaks*, etc.) y garantiza una liberación segura incluso si ocurren excepciones.
-
-### **Ejemplos de RAII en Sistemas Operativos**
-1. **Gestión de memoria**:
-   - En C++, `std::unique_ptr` o `std::shared_ptr` liberan automáticamente la memoria asignada cuando el objeto se destruye.
-   - Sin RAII, el programador tendría que llamar manualmente a `free()` o `delete`.
-
-2. **Archivos y descriptores**:
-   - Clases como `std::fstream` en C++ cierran automáticamente el archivo cuando el objeto se destruye.
-   - Sin RAII, habría que llamar manualmente a `close()`.
-
-3. **Sincronización (mutexes)**:
-   - `std::lock_guard` adquiere un mutex en su constructor y lo libera en el destructor.
-   - Sin RAII, un hilo podría olvidar liberar el mutex, causando *deadlocks*.
-
-4. **Handles del sistema**:
-   - En Windows, objetos como `HANDLE` (para archivos, procesos, etc.) pueden ser gestionados con RAII para evitar fugas.
-
-### **Ventajas de RAII en Sistemas Operativos**
-- **Seguridad**: Evita fugas de recursos.
-- **Excepción-safe**: Los recursos se liberan incluso si ocurre una excepción.
-- **Código más limpio**: Elimina la necesidad de liberación manual.
-
-### **Ejemplo en C++ (Gestión de un Mutex con RAII)**
-```cpp
-#include <mutex>
-
-void funcion_segura() {
-    std::mutex mi_mutex;
-    std::lock_guard<std::mutex> guard(mi_mutex); // Bloquea el mutex
-
-    // Operaciones críticas...
-    // El mutex se libera automáticamente al salir del ámbito.
 }
 ```
 
-### **Conclusión**
-RAII es una técnica clave para gestionar recursos del sistema operativo de manera segura y eficiente, especialmente en lenguajes como C++. Su uso evita errores comunes en la gestión manual de recursos y mejora la robustez del software.
+Nota: 
+# RAII (Resource Acquisition Is Initialization) en Sistemas Operativos
+
+## Definición
+**RAII** (Resource Acquisition Is Initialization) es un paradigma de programación utilizado en lenguajes como **C++** para gestionar recursos de manera segura y automática. Aunque no es exclusivo de los sistemas operativos, es ampliamente utilizado en el desarrollo de software que interactúa con recursos del sistema (memoria, archivos, sockets, mutexes, etc.).
+
+## Principio Básico
+- **Adquisición del recurso durante la inicialización** (generalmente en el constructor de un objeto).
+- **Liberación automática al salir del ámbito** (generalmente en el destructor).
+
+## Aplicaciones en Sistemas Operativos
+RAII ayuda a manejar recursos del sistema operativo de forma segura, evitando fugas (*memory leaks*, *handle leaks*) y garantizando liberación incluso en casos de excepciones.
+
+### Ejemplos Comunes
+1. **Gestión de Memoria**
+   - Uso de `std::unique_ptr` o `std::shared_ptr` en C++ para liberación automática.
+   - Sin RAII: riesgo de fugas por olvidar `free()` o `delete`.
+
+2. **Archivos y Descriptores**
+   - Clases como `std::fstream` cierran automáticamente el archivo al destruirse.
+   - Sin RAII: necesidad de llamar manualmente a `close()`.
+
+3. **Sincronización (Mutexes)**
+   - `std::lock_guard` adquiere y libera automáticamente un mutex.
+   - Sin RAII: riesgo de *deadlocks* por liberación olvidada.
+
+4. **Handles del Sistema (Windows/Linux)**
+   - Objetos como `HANDLE` (Windows) o descriptores de archivo (Linux) pueden gestionarse con RAII.
+
+## Ventajas de RAII
+✅ **Seguridad**: Elimina fugas de recursos.  
+✅ **Excepción-safe**: Libera recursos incluso si ocurren errores.  
+✅ **Código más limpio**: Reduce errores humanos al evitar liberación manual.  
+
+## Ejemplo en C++ (Mutex con RAII)
+```cpp
+#include <mutex>
+
+void ejemplo_seguro() {
+    std::mutex mtx;
+    std::lock_guard<std::mutex> lock(mtx); // Bloquea en construcción
+
+    // Sección crítica...
+    // El mutex se libera automáticamente al salir del ámbito.
+}
+
 ---
 
 ## 🏗️ 4. Estructuras (struct) en C
