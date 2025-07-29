@@ -138,23 +138,23 @@ int main() {
 
 ### **Operaciones con Apuntadores**
 
-```c
-#include <stdio.h>
+```c++
+#include <iostream>
 
 void ejemplo_apuntadores() {
     // ARREGLO DE ENTEROS PARA DEMOSTRAR ARITMÉTICA DE APUNTADORES
     int arreglo[] = {10, 20, 30, 40, 50};
     int *ptr = arreglo;  // Apuntador al primer elemento (equivalente a &arreglo[0])
     
-    printf("Elementos del arreglo usando apuntadores:\n");
+    std::cout << "Elementos del arreglo usando apuntadores:\n";
     
     // ARITMÉTICA DE APUNTADORES
     // ptr + i: avanza i posiciones desde la dirección apuntada
     // *(ptr + i): desreferencia la dirección en la posición i
     for(int i = 0; i < 5; i++) {
         // Mostramos el valor y la dirección de cada elemento
-        printf("Elemento %d: %d (dirección: %p)\n", 
-               i, *(ptr + i), ptr + i);
+        std::cout << "Elemento " << i << ": " << *(ptr + i) 
+                  << " (dirección: " << (ptr + i) << ")\n";
     }
     
     // MODIFICACIÓN USANDO APUNTADORES
@@ -164,11 +164,11 @@ void ejemplo_apuntadores() {
     *ptr = 100;          // Modifica arreglo[0] (primer elemento)
     *(ptr + 2) = 300;    // Modifica arreglo[2] (tercer elemento)
     
-    printf("\nArreglo modificado: ");
+    std::cout << "\nArreglo modificado: ";
     for(int i = 0; i < 5; i++) {
-        printf("%d ", arreglo[i]);  // Imprimir arreglo modificado
+        std::cout << arreglo[i] << " ";  // Imprimir arreglo modificado
     }
-    printf("\n");
+    std::cout << "\n";
 }
 
 // APUNTADORES A FUNCIONES
@@ -184,11 +184,18 @@ void ejemplo_funciones_apuntadores() {
     // ASIGNAR FUNCIONES A APUNTADORES
     // operacion = sumar: asignamos dirección de la función sumar
     operacion = sumar;
-    printf("Suma: %d\n", operacion(5, 3));  // 8 - llamamos función a través de apuntador
+    std::cout << "Suma: " << operacion(5, 3) << "\n";  // 8 - llamamos función a través de apuntador
     
     operacion = multiplicar;
-    printf("Multiplicación: %d\n", operacion(5, 3));  // 15 - llamamos otra función
+    std::cout << "Multiplicación: " << operacion(5, 3) << "\n";  // 15 - llamamos otra función
 }
+
+int main() {
+    ejemplo_apuntadores();
+    ejemplo_funciones_apuntadores();
+    return 0;
+}
+
 ```
 
 ---
