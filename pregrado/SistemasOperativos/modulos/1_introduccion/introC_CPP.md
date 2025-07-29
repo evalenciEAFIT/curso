@@ -884,155 +884,374 @@ int main() {
 ### **Buenas Prácticas de Gestión de Memoria**
 
 ```cpp
-#include <iostream>
-#include <memory>  // Para smart pointers (C++11+)
-using namespace std;
+#include <iostream>  // QUÉ: Incluye la biblioteca de entrada/salida para consola
+                     // POR QUÉ: Permite usar std::cout para mostrar texto
+                     // CÓMO: Proporciona funciones para impresión formateada
+                     // HACER: Usar para mostrar resultados en pantalla
+#include <memory>    // QUÉ: Incluye la biblioteca para smart pointers
+                     // POR QUÉ: Proporciona std::unique_ptr, std::shared_ptr, std::weak_ptr
+                     // CÓMO: Facilita la gestión automática de memoria
+                     // HACER: Usar para evitar memory leaks
+#include <string>    // QUÉ: Incluye la biblioteca para std::string
+                     // POR QUÉ: Necesaria para el campo nombre en GestorRecurso
+                     // CÓMO: Proporciona una clase para manejar cadenas
+                     // HACER: Usar para nombres de recursos
 
-// EJEMPLO DE BUENAS PRÁCTICAS CON SMART POINTERS
+// QUÉ: Función para demostrar el uso de smart pointers (C++11+)
+// POR QUÉ: Mostrar cómo gestionar memoria automáticamente
+// CÓMO: Usa unique_ptr, shared_ptr y weak_ptr con make_unique/make_shared
+// HACER: Ejecutar para entender la gestión automática de memoria
 void ejemplo_smart_pointers() {
-    cout << "\n=== SMART POINTERS (C++11+) ===" << endl;
-    
-    // unique_ptr - PROPIEDAD ÚNICA (NO SE PUEDE COPIAR, SOLO MOVER)
+    // QUÉ: Imprimir encabezado de la sección
+    // POR QUÉ: Indicar el inicio de la demostración
+    // CÓMO: Usa std::cout con saltos de línea para claridad
+    // HACER: Asegurar que la salida sea clara
+    std::cout << "\n=== SMART POINTERS (C++11+) ===\n";
+
+    // QUÉ: Demostrar unique_ptr para propiedad única
+    // POR QUÉ: Mostrar cómo manejar recursos no compartibles
+    // CÓMO: Usa make_unique para crear y mover propiedad
+    // HACER: Observar la transferencia de propiedad
     {
-        // make_unique<int>(42): crear unique_ptr de forma segura
-        unique_ptr<int> ptr_unica = make_unique<int>(42);
-        cout << "Valor unique_ptr: " << *ptr_unica << endl;  // Desreferenciar
-        
-        // TRANSFERENCIA DE PROPIEDAD CON move()
-        unique_ptr<int> ptr2 = move(ptr_unica);  // Mover propiedad a ptr2
-        cout << "Valor después de move: " << *ptr2 << endl;
-        // ptr_unica ya no es válida (nullptr)
-        
-        // NO NECESITA delete EXPLÍCITO - SE LIBERA AUTOMÁTICAMENTE
-    }  // Se libera automáticamente al salir del scope
-    
-    // shared_ptr - PROPIEDAD COMPARTIDA (REFERENCIA CONTADA)
+        // QUÉ: Crear un unique_ptr con valor inicial
+        // POR QUÉ: Asegurar asignación segura sin delete explícito
+        // CÓMO: Usa std::make_unique para inicializar con 42
+        // HACER: Verificar que el valor sea accesible
+        std::unique_ptr<int> ptr_unica = std::make_unique<int>(42);
+        std::cout << "Valor unique_ptr: " << *ptr_unica << "\n";
+
+        // QUÉ: Transferir propiedad a otro unique_ptr
+        // POR QUÉ: Demostrar que unique_ptr no se puede copiar
+        // CÓMO: Usa std::move para transferir propiedad
+        // HACER: Confirmar que ptr_unica queda inválido
+        std::unique_ptr<int> ptr2 = std::move(ptr_unica);
+        std::cout << "Valor después de move (move(ptr_unica)): " << *ptr2 << "\n";
+        // Nota: ptr_unica es nullptr tras move, no se debe dereferenciar
+    }  // QUÉ: Liberar memoria automáticamente
+       // POR QUÉ: unique_ptr libera memoria al salir del scope
+       // CÓMO: El destructor de unique_ptr llama a delete
+       // HACER: No es necesario delete explícito
+
+    // QUÉ: Demostrar shared_ptr para propiedad compartida
+    // POR QUÉ: Mostrar cómo múltiples punteros comparten un recurso
+    // CÓMO: Usa make_shared y verifica el contador de referencias
+    // HACER: Observar el conteo de referencias
     {
-        // make_shared<int>(100): crear shared_ptr de forma eficiente
-        shared_ptr<int> ptr_compartido1 = make_shared<int>(100);
+        // QUÉ: Crear un shared_ptr con valor inicial
+        // POR QUÉ: Asegurar asignación eficiente y compartida
+        // CÓMO: Usa std::make_shared para inicializar con 100
+        // HACER: Verificar que el valor sea accesible
+        std::shared_ptr<int> ptr_compartido1 = std::make_shared<int>(100);
         {
-            shared_ptr<int> ptr_compartido2 = ptr_compartido1;  // Compartir propiedad
-            cout << "Contador de referencias: " << ptr_compartido1.use_count() << endl;
-            cout << "Valor compartido: " << *ptr_compartido1 << endl;
-        }  // ptr_compartido2 se destruye aquí, contador disminuye
-        cout << "Contador después de scope: " << ptr_compartido1.use_count() << endl;
-    }  // ptr_compartido1 se destruye aquí, memoria se libera
-    
-    // weak_ptr - REFERENCIA DÉBIL (EVITA CICLOS DE REFERENCIA)
+            // QUÉ: Compartir propiedad con otro shared_ptr
+            // POR QUÉ: Demostrar incremento del contador de referencias
+            // CÓMO: Asigna ptr_compartido1 a ptr_compartido2
+            // HACER: Verificar el contador de referencias
+            std::shared_ptr<int> ptr_compartido2 = ptr_compartido1;
+            std::cout << "Contador de referencias: " << ptr_compartido1.use_count() << "\n";
+            std::cout << "Valor compartido: " << *ptr_compartido1 << "\n";
+        }  // QUÉ: Liberar ptr_compartido2
+           // POR QUÉ: Disminuye el contador de referencias
+           // CÓMO: El destructor de ptr_compartido2 reduce use_count
+           // HACER: Confirmar que el contador disminuye
+        std::cout << "Contador después de scope: " << ptr_compartido1.use_count() << "\n";
+    }  // QUÉ: Liberar memoria compartida
+       // POR QUÉ: El último shared_ptr libera la memoria
+       // CÓMO: El destructor de shared_ptr llama a delete cuando use_count es 0
+       // HACER: No es necesario delete explícito
+
+    // QUÉ: Demostrar weak_ptr para referencias débiles
+    // POR QUÉ: Evitar ciclos de referencia y verificar validez
+    // CÓMO: Usa weak_ptr con lock() para acceder al recurso
+    // HACER: Verificar si el recurso aún existe
     {
-        shared_ptr<int> ptr_original = make_shared<int>(200);
-        weak_ptr<int> ptr_debil = ptr_original;  // Referencia débil (no incrementa contador)
-        
-        // lock(): verificar si el objeto aún existe y obtener shared_ptr temporal
-        if(auto ptr = ptr_debil.lock()) {  // Verificar si aún existe
-            cout << "Valor desde weak_ptr: " << *ptr << endl;
+        // QUÉ: Crear shared_ptr y asociar weak_ptr
+        // POR QUÉ: Mostrar referencias débiles sin incrementar contador
+        // CÓMO: Usa make_shared y asigna a weak_ptr
+        // HACER: Verificar acceso seguro al recurso
+        std::shared_ptr<int> ptr_original = std::make_shared<int>(200);
+        std::weak_ptr<int> ptr_debil = ptr_original;
+        // QUÉ: Acceder al recurso con lock()
+        // POR QUÉ: Verificar si el recurso aún existe
+        // CÓMO: lock() retorna un shared_ptr temporal
+        // HACER: Comprobar validez antes de dereferenciar
+        if (auto ptr = ptr_debil.lock()) {
+            std::cout << "Valor desde weak_ptr: " << *ptr << "\n";
+        } else {
+            std::cout << "Recurso de weak_ptr no disponible\n";
         }
-    }
+    }  // QUÉ: Liberar recursos
+       // POR QUÉ: weak_ptr no afecta la vida del recurso
+       // CÓMO: ptr_original libera la memoria al salir del scope
+       // HACER: Confirmar que weak_ptr no causa leaks
 }
 
-// EJEMPLO DE PATRÓN RAII (RESOURCE ACQUISITION IS INITIALIZATION)
+// QUÉ: Clase para implementar el patrón RAII
+// POR QUÉ: Garantizar la liberación automática de recursos
+// CÓMO: Usa constructor, destructor y semántica de movimiento
+// HACER: Usar para gestionar recursos de forma segura
 class GestorRecurso {
 private:
-    int* recurso;     // Recurso gestionado (memoria dinámica)
-    string nombre;    // Nombre identificador del recurso
+    int* recurso;        // QUÉ: Puntero a recurso dinámico
+                         // POR QUÉ: Representa un recurso gestionado
+                         // CÓMO: Apunta a memoria asignada con new
+                         // HACER: Gestionar cuidadosamente para evitar leaks
+    std::string nombre;  // QUÉ: Nombre identificador del recurso
+                         // POR QUÉ: Facilitar trazabilidad en salida
+                         // CÓMO: Usa std::string para manejo seguro
+                         // HACER: Usar para identificar el recurso
 
 public:
-    // CONSTRUCTOR - ADQUIRIR RECURSO AL CREAR OBJETO
-    GestorRecurso(const string& n) : nombre(n) {
-        recurso = new int(0);  // Adquirir recurso (memoria)
-        cout << "Recurso " << nombre << " adquirido" << endl;
+    // QUÉ: Constructor para adquirir recurso
+    // POR QUÉ: Inicializar el objeto con un recurso dinámico
+    // CÓMO: Asigna memoria con new y std::nothrow
+    // HACER: Verificar asignación y establecer nombre
+    GestorRecurso(const std::string& n) : nombre(n), recurso(nullptr) {
+        recurso = new (std::nothrow) int(0);
+        if (recurso == nullptr) {
+            // QUÉ: Manejar fallo de asignación
+            // POR QUÉ: Evitar errores con puntero nulo
+            // CÓMO: Imprime error
+            // HACER: Informar al usuario del fallo
+            std::cout << "Error: No se pudo asignar recurso para " << nombre << "\n";
+            return;
+        }
+        std::cout << "Recurso " << nombre << " adquirido\n";
     }
-    
-    // DESTRUCTOR - LIBERAR RECURSO AL DESTRUIR OBJETO
+
+    // QUÉ: Destructor para liberar recurso
+    // POR QUÉ: Garantizar liberación automática al salir del scope
+    // CÓMO: Usa delete y verifica validez del puntero
+    // HACER: Asegurar que se llame automáticamente
     ~GestorRecurso() {
-        delete recurso;  // Liberar recurso automáticamente
-        cout << "Recurso " << nombre << " liberado" << endl;
+        if (recurso) {
+            std::cout << "Recurso " << nombre << " liberado\n";
+            delete recurso;
+            recurso = nullptr;
+        }
     }
-    
-    // NO PERMITIR COPIA (C++11) - EVITAR DOBLE LIBERACIÓN
-    GestorRecurso(const GestorRecurso&) = delete;  // Eliminar constructor de copia
-    GestorRecurso& operator=(const GestorRecurso&) = delete;  // Eliminar operador =
-    
-    // PERMITIR MOVIMIENTO (C++11) - TRANSFERIR PROPIEDAD DE FORMA EFICIENTE
+
+    // QUÉ: Eliminar constructor de copia
+    // POR QUÉ: Evitar copias accidentales que causen doble liberación
+    // CÓMO: Usa = delete para deshabilitar copia
+    // HACER: Usar movimiento en lugar de copia
+    GestorRecurso(const GestorRecurso&) = delete;
+    GestorRecurso& operator=(const GestorRecurso&) = delete;
+
+    // QUÉ: Constructor de movimiento
+    // POR QUÉ: Permitir transferencia segura de propiedad
+    // CÓMO: Transfiere recurso y nombre, deja origen en estado válido
+    // HACER: Usar std::move para transferencias
     GestorRecurso(GestorRecurso&& otro) noexcept 
-        : recurso(otro.recurso), nombre(move(otro.nombre)) {
-        otro.recurso = nullptr;  // Dejar objeto origen en estado válido
-        cout << "Recurso " << nombre << " movido" << endl;
+        : recurso(otro.recurso), nombre(std::move(otro.nombre)) {
+        otro.recurso = nullptr;
+        std::cout << "Recurso " << nombre << " movido\n";
     }
-    
-    // MÉTODO PARA USAR EL RECURSO
+
+    // QUÉ: Operador de asignación por movimiento
+    // POR QUÉ: Completar semántica de movimiento para RAII
+    // CÓMO: Libera recurso actual, transfiere desde otro
+    // HACER: Usar para asignaciones seguras
+    GestorRecurso& operator=(GestorRecurso&& otro) noexcept {
+        if (this != &otro) {
+            // QUÉ: Liberar recurso actual
+            // POR QUÉ: Evitar memory leaks
+            // CÓMO: Usa delete si recurso existe
+            // HACER: Asegurar liberación antes de transferencia
+            delete recurso;
+            // QUÉ: Transferir recurso y nombre
+            // POR QUÉ: Tomar propiedad del recurso de otro
+            // CÓMO: Asigna puntero y mueve nombre
+            // HACER: Dejar otro en estado válido
+            recurso = otro.recurso;
+            nombre = std::move(otro.nombre);
+            otro.recurso = nullptr;
+            std::cout << "Recurso " << nombre << " asignado por movimiento\n";
+        }
+        return *this;
+    }
+
+    // QUÉ: Método para usar el recurso
+    // POR QUÉ: Demostrar interacción con el recurso
+    // CÓMO: Incrementa el valor del recurso si es válido
+    // HACER: Verificar validez antes de usar
     void usar() {
-        if(recurso) {  // Verificar que el recurso sea válido
-            (*recurso)++;  // Usar recurso (incrementar contador)
-            cout << "Usando recurso " << nombre << ": " << *recurso << endl;
+        if (recurso) {
+            (*recurso)++;
+            std::cout << "Usando recurso " << nombre << ": " << *recurso << "\n";
+        } else {
+            std::cout << "Recurso " << nombre << " no válido\n";
         }
     }
 };
 
+// QUÉ: Función para demostrar el patrón RAII
+// POR QUÉ: Mostrar gestión automática de recursos
+// CÓMO: Crea objetos GestorRecurso y usa sus métodos
+// HACER: Ejecutar para observar ciclo de vida de recursos
 void ejemplo_raii() {
-    cout << "\n=== PATRÓN RAII ===" << endl;
-    
+    // QUÉ: Imprimir encabezado de la sección
+    // POR QUÉ: Indicar inicio de la demostración
+    // CÓMO: Usa std::cout para claridad
+    // HACER: Asegurar que la salida sea clara
+    std::cout << "\n=== PATRÓN RAII ===\n";
+
     {
-        // CREAR OBJETOS QUE GESTIONAN RECURSOS AUTOMÁTICAMENTE
-        GestorRecurso recurso1("Archivo1");  // Adquirir recurso
-        GestorRecurso recurso2("Archivo2");  // Adquirir recurso
-        
-        // USAR RECURSOS
+        // QUÉ: Crear objetos que gestionan recursos
+        // POR QUÉ: Demostrar adquisición y liberación automática
+        // CÓMO: Instancia objetos GestorRecurso
+        // HACER: Usar y observar liberación al salir del scope
+        GestorRecurso recurso1("Archivo1");
+        GestorRecurso recurso2("Archivo2");
+        // QUÉ: Usar los recursos
+        // POR QUÉ: Mostrar funcionalidad del recurso
+        // CÓMO: Llama al método usar
+        // HACER: Verificar que los valores se incrementan
         recurso1.usar();
         recurso1.usar();
         recurso2.usar();
-        
-        // LOS RECURSOS SE LIBERAN AUTOMÁTICAMENTE AL SALIR DEL SCOPE
     }
-    cout << "Todos los recursos liberados" << endl;
+    // QUÉ: Confirmar liberación de recursos
+    // POR QUÉ: Verificar que los destructores se llamaron
+    // CÓMO: Imprime mensaje tras salir del scope
+    // HACER: Confirmar que no hay memory leaks
+    std::cout << "Todos los recursos liberados\n";
 }
 
-// EJEMPLO DE MANEJO SEGURO DE MEMORIA
+// QUÉ: Función para demostrar manejo seguro de memoria con raw pointers
+// POR QUÉ: Mostrar buenas prácticas con punteros crudos
+// CÓMO: Usa inicialización, verificación y liberación explícita
+// HACER: Ejecutar para entender manejo manual de memoria
 void ejemplo_manejo_seguro() {
-    cout << "\n=== MANEJO SEGURO DE MEMORIA ===" << endl;
-    
-    // 1. SIEMPRE VERIFICAR ASIGNACIÓN DE MEMORIA
-    int* ptr = nullptr;  // Inicializar a nullptr
-    try {
-        ptr = new int[1000];  // Intentar asignar memoria
-    } catch(const bad_alloc&) {
-        cout << "Error de asignación de memoria" << endl;
-        return;  // Salir si falla
+    // QUÉ: Imprimir encabezado de la sección
+    // POR QUÉ: Indicar inicio de la demostración
+    // CÓMO: Usa std::cout para claridad
+    // HACER: Asegurar que la salida sea clara
+    std::cout << "\n=== MANEJO SEGURO DE MEMORIA ===\n";
+
+    // QUÉ: Asignar memoria para un arreglo
+    // POR QUÉ: Demostrar verificación de asignación
+    // CÓMO: Usa new con std::nothrow
+    // HACER: Verificar si la asignación fue exitosa
+    int* ptr = new (std::nothrow) int[1000];
+    if (ptr == nullptr) {
+        // QUÉ: Manejar fallo de asignación
+        // POR QUÉ: Evitar errores con puntero nulo
+        // CÓMO: Imprime error y retorna
+        // HACER: Salir para evitar problemas
+        std::cout << "Error: No se pudo asignar memoria para arreglo\n";
+        return;
     }
-    
-    // 2. INICIALIZAR APUNTADORES A nullptr
-    int* ptr1 = nullptr;  // Buena práctica: evitar valores basura
-    int* ptr2 = nullptr;  // Buena práctica: evitar dangling pointers
-    
-    try {
-        ptr1 = new int(10);   // Asignar memoria para primer entero
-        ptr2 = new int(20);   // Asignar memoria para segundo entero
-        
-        // 3. USAR RECURSOS
-        cout << "Valores: " << *ptr1 << ", " << *ptr2 << endl;
-        
-    } catch(...) {
-        // 4. LIBERAR MEMORIA EN CASO DE EXCEPCIÓN (CLEANUP)
-        delete ptr1;  // Liberar memoria si fue asignada
-        delete ptr2;  // Liberar memoria si fue asignada
-        delete[] ptr; // Liberar memoria si fue asignada
-        throw;        // Re-lanzar la excepción original
+
+    // QUÉ: Inicializar apuntadores a nullptr
+    // POR QUÉ: Evitar valores basura y dangling pointers
+    // CÓMO: Declara punteros y asigna nullptr
+    // HACER: Siempre inicializar punteros
+    int* ptr1 = nullptr;
+    int* ptr2 = nullptr;
+
+    // QUÉ: Asignar memoria para enteros individuales
+    // POR QUÉ: Demostrar asignación y uso seguro
+    // CÓMO: Usa new con std::nothrow y verifica
+    // HACER: Verificar asignaciones antes de usar
+    ptr1 = new (std::nothrow) int(10);
+    if (ptr1 == nullptr) {
+        // QUÉ: Manejar fallo de asignación
+        // POR QUÉ: Evitar memory leaks y errores
+        // CÓMO: Libera memoria previa y retorna
+        // HACER: Asegurar limpieza antes de salir
+        std::cout << "Error: No se pudo asignar memoria para ptr1\n";
+        delete[] ptr;
+        return;
     }
-    
-    // 5. LIBERAR MEMORIA NORMALMENTE
-    delete ptr1;   // Liberar primer entero
-    delete ptr2;   // Liberar segundo entero
-    delete[] ptr;  // Liberar arreglo
-    
-    // 6. EVITAR DANGLING POINTERS
-    ptr1 = nullptr;  // Evitar usar apuntador después de liberar
-    ptr2 = nullptr;  // Evitar usar apuntador después de liberar
-    ptr = nullptr;   // Evitar usar apuntador después de liberar
-    
-    cout << "Memoria manejada de forma segura" << endl;
+    ptr2 = new (std::nothrow) int(20);
+    if (ptr2 == nullptr) {
+        // QUÉ: Manejar fallo de asignación
+        // POR QUÉ: Evitar memory leaks y errores
+        // CÓMO: Libera memoria previa y retorna
+        // HACER: Asegurar limpieza antes de salir
+        std::cout << "Error: No se pudo asignar memoria para ptr2\n";
+        delete ptr1;
+        delete[] ptr;
+        return;
+    }
+
+    // QUÉ: Usar los recursos asignados
+    // POR QUÉ: Mostrar acceso a memoria dinámica
+    // CÓMO: Imprime valores de los punteros
+    // HACER: Verificar que los valores sean correctos
+    std::cout << "Valores: " << *ptr1 << ", " << *ptr2 << "\n";
+
+    // QUÉ: Liberar memoria asignada
+    // POR QUÉ: Evitar memory leaks
+    // CÓMO: Usa delete y delete[] para liberar
+    // HACER: Establecer punteros a nullptr tras liberar
+    delete ptr1;
+    delete ptr2;
+    delete[] ptr;
+    ptr1 = nullptr;
+    ptr2 = nullptr;
+    ptr = nullptr;
+    std::cout << "Memoria manejada de forma segura\n";
+}
+
+// QUÉ: Función principal, punto de entrada del programa
+// POR QUÉ: Requerida por el compilador para iniciar ejecución
+// CÓMO: Llama a las funciones de demostración
+// HACER: Ejecutar todas las demostraciones en orden
+int main() {
+    ejemplo_smart_pointers();
+    ejemplo_raii();
+    ejemplo_manejo_seguro();
+    return 0;
+}```
+
+Nota: 
+**RAII (Resource Acquisition Is Initialization)** es un paradigma de programación utilizado en lenguajes como C++ para gestionar recursos de manera segura y automática. Aunque no es un concepto exclusivo de los sistemas operativos, es ampliamente utilizado en el desarrollo de software que interactúa con recursos del sistema operativo (como memoria, archivos, sockets, mutexes, etc.).
+
+### **RAII en Sistemas Operativos**
+En el contexto de los sistemas operativos, RAII ayuda a manejar recursos del sistema de forma que:
+1. **La adquisición del recurso se realiza durante la inicialización de un objeto** (generalmente en el constructor).
+2. **La liberación del recurso ocurre automáticamente cuando el objeto sale de su ámbito** (generalmente en el destructor).
+
+Esto previene fugas de recursos (*memory leaks*, *handle leaks*, etc.) y garantiza una liberación segura incluso si ocurren excepciones.
+
+### **Ejemplos de RAII en Sistemas Operativos**
+1. **Gestión de memoria**:
+   - En C++, `std::unique_ptr` o `std::shared_ptr` liberan automáticamente la memoria asignada cuando el objeto se destruye.
+   - Sin RAII, el programador tendría que llamar manualmente a `free()` o `delete`.
+
+2. **Archivos y descriptores**:
+   - Clases como `std::fstream` en C++ cierran automáticamente el archivo cuando el objeto se destruye.
+   - Sin RAII, habría que llamar manualmente a `close()`.
+
+3. **Sincronización (mutexes)**:
+   - `std::lock_guard` adquiere un mutex en su constructor y lo libera en el destructor.
+   - Sin RAII, un hilo podría olvidar liberar el mutex, causando *deadlocks*.
+
+4. **Handles del sistema**:
+   - En Windows, objetos como `HANDLE` (para archivos, procesos, etc.) pueden ser gestionados con RAII para evitar fugas.
+
+### **Ventajas de RAII en Sistemas Operativos**
+- **Seguridad**: Evita fugas de recursos.
+- **Excepción-safe**: Los recursos se liberan incluso si ocurre una excepción.
+- **Código más limpio**: Elimina la necesidad de liberación manual.
+
+### **Ejemplo en C++ (Gestión de un Mutex con RAII)**
+```cpp
+#include <mutex>
+
+void funcion_segura() {
+    std::mutex mi_mutex;
+    std::lock_guard<std::mutex> guard(mi_mutex); // Bloquea el mutex
+
+    // Operaciones críticas...
+    // El mutex se libera automáticamente al salir del ámbito.
 }
 ```
 
+### **Conclusión**
+RAII es una técnica clave para gestionar recursos del sistema operativo de manera segura y eficiente, especialmente en lenguajes como C++. Su uso evita errores comunes en la gestión manual de recursos y mejora la robustez del software.
 ---
 
 ## 🏗️ 4. Estructuras (struct) en C
