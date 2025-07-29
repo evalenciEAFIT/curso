@@ -1252,6 +1252,7 @@ void ejemplo_seguro() {
     // Sección crítica...
     // El mutex se libera automáticamente al salir del ámbito.
 }
+```
 
 ---
 
