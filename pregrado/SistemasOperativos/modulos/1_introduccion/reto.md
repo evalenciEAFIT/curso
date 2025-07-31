@@ -210,4 +210,3 @@ El paso por referencia **reduce significativamente el uso de memoria y mejora el
 | Velocidad | Más lento | Más rápido |
 | Seguridad | Aísla datos originales | Requiere `const` para protección |
 
-Este análisis proporciona una base técnica para tomar decisiones informadas en el desarrollo de software eficiente en C++.
