@@ -22,30 +22,30 @@ Esta guía completa cubre el uso de C y C++ con sus respectivos compiladores GCC
 
 ```bash
 # COMPILACIÓN BÁSICA
- gcc archivo.c -o programa
+gcc archivo.c -o programa
 # - gcc: compilador para C
 # - archivo.c: archivo fuente en C
 # - -o programa: nombre del ejecutable de salida
 
 # COMPILACIÓN CON WARNINGS
- gcc -Wall -Wextra archivo.c -o programa
+gcc -Wall -Wextra archivo.c -o programa
 # - -Wall: mostrar todos los warnings importantes
 # - -Wextra: mostrar warnings adicionales
 
 # COMPILACIÓN CON OPTIMIZACIÓN
- gcc -O2 archivo.c -o programa
+gcc -O2 archivo.c -o programa
 # - -O2: nivel de optimización moderado (balance entre velocidad y tamaño)
 
 # COMPILACIÓN CON DEBUGGING
- gcc -g archivo.c -o programa
+gcc -g archivo.c -o programa
 # - -g: incluir información de debugging para usar con gdb
 
 # COMPILACIÓN MÚLTIPLES ARCHIVOS
- gcc archivo1.c archivo2.c -o programa
+gcc archivo1.c archivo2.c -o programa
 # - Compila varios archivos fuente en un solo ejecutable
 
 # COMPILACIÓN CON BIBLIOTECAS EXTERNAS
- gcc archivo.c -lm -o programa
+gcc archivo.c -lm -o programa
 # - -lm: enlazar con la biblioteca matemática (libm)
 ```
 
@@ -53,26 +53,26 @@ Esta guía completa cubre el uso de C y C++ con sus respectivos compiladores GCC
 
 ```bash
 # COMPILACIÓN BÁSICA
-# g++ archivo.cpp -o programa
+g++ archivo.cpp -o programa
 # - g++: compilador para C++
 # - archivo.cpp: archivo fuente en C++
 # - -o programa: nombre del ejecutable de salida
 
 # COMPILACIÓN CON ESTÁNDARES MODERNOS
-# g++ -std=c++17 archivo.cpp -o programa
+g++ -std=c++17 archivo.cpp -o programa
 # - -std=c++17: usar el estándar C++17
-# g++ -std=c++20 archivo.cpp -o programa
+g++ -std=c++20 archivo.cpp -o programa
 # - -std=c++20: usar el estándar C++20
 
 # COMPILACIÓN CON WARNINGS Y DEBUGGING
-# g++ -Wall -Wextra -g archivo.cpp -o programa
+g++ -Wall -Wextra -g archivo.cpp -o programa
 # - Combinación de flags para desarrollo seguro
 
 # COMPILACIÓN SEPARADA (COMPILACIÓN Y ENLAZADO)
-# g++ -c archivo1.cpp          # Genera archivo1.o
+g++ -c archivo1.cpp          # Genera archivo1.o
 # - -c: solo compilar (no enlazar), genera archivo objeto
-# g++ -c archivo2.cpp          # Genera archivo2.o
-# g++ archivo1.o archivo2.o -o programa  # Enlaza objetos
+g++ -c archivo2.cpp          # Genera archivo2.o
+g++ archivo1.o archivo2.o -o programa  # Enlaza objetos
 # - Enlazar archivos objeto para crear ejecutable final
 ```
 
@@ -197,8 +197,10 @@ int main() {
 }
 
 ```
-Reto [**reto.md**](./reto.md) 
-Reto de Estructura [**reto_estructuras.md**](./reto_estructuras.md)
+Uso conjunto de C y C++
+Reto [**reto.md**](./reto.md)
+Reto de estructuras [**reto_estructuras.md**](./reto_estructuras.md)
+
 ---
 
 ## 💾 3. Gestión de Memoria Dinámica
