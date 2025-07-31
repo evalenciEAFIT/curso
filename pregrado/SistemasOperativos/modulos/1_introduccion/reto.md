@@ -51,14 +51,15 @@ Se desarrolla un programa en C++ que:
 #include <random>     // Generación de números aleatorios
 #include <chrono>     // Medición de tiempos de ejecución
 #include <algorithm>  // Funciones útiles (abs, max)
+#include <string>     // Para manejo de entrada de usuario
 
 using namespace std;
 using namespace std::chrono;
 
 /**
  * Genera un vector de números aleatorios entre 1 y 100.
- * @param n Tamaño del vector.
- * @return Vector con datos aleatorios.
+ * {parametro}: n Tamaño del vector.
+ * {valor retorno}: Vector con datos aleatorios.
  */
 vector<int> generarDatos(size_t n) {
     random_device rd;       // Generador hardware-based
@@ -74,8 +75,8 @@ vector<int> generarDatos(size_t n) {
 
 /**
  * Suma los elementos de un vector recibido por valor (copia).
- * @param datos Copia del vector original.
- * @return Suma de los elementos.
+ * {parametro}: datos Copia del vector original.
+ * {valor retorno}: Suma de los elementos.
  */
 long long sumarPorValor(vector<int> datos) {
     long long suma = 0;
@@ -87,8 +88,8 @@ long long sumarPorValor(vector<int> datos) {
 
 /**
  * Suma los elementos de un vector recibido por referencia (sin copia).
- * @param datos Referencia al vector original.
- * @param sumaReferencia Variable donde se almacena el resultado.
+ * {parametro}: datos Referencia al vector original.
+ * {parametro}: sumaReferencia Variable donde se almacena el resultado.
  */
 void sumarPorReferencia(const vector<int>& datos, long long &sumaReferencia) {
     long long suma = 0;
@@ -100,7 +101,7 @@ void sumarPorReferencia(const vector<int>& datos, long long &sumaReferencia) {
 
 /**
  * Muestra una muestra de los datos generados (primeros y últimos 5 elementos).
- * @param datos Vector a analizar.
+ * {parametro}: datos Vector a analizar.
  */
 void mostrarEstadisticas(const vector<int>& datos) {
     cout << "Muestra de datos - Primeros 5: ";
@@ -114,8 +115,25 @@ void mostrarEstadisticas(const vector<int>& datos) {
     cout << endl;
 }
 
-int main() {
-    const size_t N = 100'000'000; // 100 millones de elementos (~380MB)
+int main(int argc, char* argv[]) {
+    size_t N = 100'000'000; // Valor por defecto: 100 millones de elementos (~380MB)
+    
+    // Verificar si se proporcionó un argumento de línea de comandos
+    if (argc > 1) {
+        try {
+            long input = stol(argv[1]);
+            if (input > 0) {
+                N = static_cast<size_t>(input);
+            } else {
+                cerr << "Advertencia: El valor debe ser positivo. Usando valor por defecto." << endl;
+            }
+        } catch (const invalid_argument&) {
+            cerr << "Advertencia: Entrada no válida. Usando valor por defecto." << endl;
+        } catch (const out_of_range&) {
+            cerr << "Advertencia: Valor demasiado grande. Usando valor por defecto." << endl;
+        }
+    }
+    
     cout << "Generando " << N << " números aleatorios...\n";
     
     // Generación del dataset
