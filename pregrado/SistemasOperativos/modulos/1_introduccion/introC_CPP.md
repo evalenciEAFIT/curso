@@ -22,30 +22,30 @@ Esta guía completa cubre el uso de C y C++ con sus respectivos compiladores GCC
 
 ```bash
 # COMPILACIÓN BÁSICA
-# gcc archivo.c -o programa
+ gcc archivo.c -o programa
 # - gcc: compilador para C
 # - archivo.c: archivo fuente en C
 # - -o programa: nombre del ejecutable de salida
 
 # COMPILACIÓN CON WARNINGS
-# gcc -Wall -Wextra archivo.c -o programa
+ gcc -Wall -Wextra archivo.c -o programa
 # - -Wall: mostrar todos los warnings importantes
 # - -Wextra: mostrar warnings adicionales
 
 # COMPILACIÓN CON OPTIMIZACIÓN
-# gcc -O2 archivo.c -o programa
+ gcc -O2 archivo.c -o programa
 # - -O2: nivel de optimización moderado (balance entre velocidad y tamaño)
 
 # COMPILACIÓN CON DEBUGGING
-# gcc -g archivo.c -o programa
+ gcc -g archivo.c -o programa
 # - -g: incluir información de debugging para usar con gdb
 
 # COMPILACIÓN MÚLTIPLES ARCHIVOS
-# gcc archivo1.c archivo2.c -o programa
+ gcc archivo1.c archivo2.c -o programa
 # - Compila varios archivos fuente en un solo ejecutable
 
 # COMPILACIÓN CON BIBLIOTECAS EXTERNAS
-# gcc archivo.c -lm -o programa
+ gcc archivo.c -lm -o programa
 # - -lm: enlazar con la biblioteca matemática (libm)
 ```
 
@@ -198,7 +198,7 @@ int main() {
 
 ```
 Reto [**reto.md**](./reto.md) 
-Reto de Estructura [**reto.md**](./reto.md) 
+Reto de Estructura [**reto_estructuras.md**](./reto_estructuras.md)
 ---
 
 ## 💾 3. Gestión de Memoria Dinámica
