@@ -197,9 +197,8 @@ int main() {
 }
 
 ```
-### Reto
-[**reto.md**](./reto.md) 
-https://github.com/evalenciEAFIT/curso/blob/main/pregrado/SistemasOperativos/modulos/1_introduccion/reto.md
+Reto [**reto.md**](./reto.md) 
+
 ---
 
 ## 💾 3. Gestión de Memoria Dinámica
