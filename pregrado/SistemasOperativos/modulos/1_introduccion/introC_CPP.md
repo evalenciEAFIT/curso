@@ -198,7 +198,7 @@ int main() {
 
 ```
 Reto [**reto.md**](./reto.md) 
-
+Reto de Estructura [**reto.md**](./reto.md) 
 ---
 
 ## 💾 3. Gestión de Memoria Dinámica
