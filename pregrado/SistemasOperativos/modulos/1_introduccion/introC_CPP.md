@@ -197,8 +197,9 @@ int main() {
 }
 
 ```
-Uso conjunto de C y C++
+
 Reto [**reto.md**](./reto.md)
+
 Reto de estructuras [**reto_estructuras.md**](./reto_estructuras.md)
 
 ---
