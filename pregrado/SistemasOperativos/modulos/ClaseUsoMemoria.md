@@ -339,3 +339,399 @@ Inactive:        2500000 kB
 Slab:             220000 kB  
 ...
 ```
+
+
+
+---
+---
+
+# **Algoritmos de Gestión de Memoria en el Kernel de Linux**
+
+## **Introducción**
+
+La gestión de memoria en el kernel de Linux es una tarea de alta ingeniería, diseñada para ser rápida, eficiente y escalable. A diferencia de la gestión de memoria en el espacio de usuario (manejada por bibliotecas como glibc con malloc), el kernel debe administrar la memoria física directamente. Para ello, utiliza un sistema de dos capas altamente optimizado.
+
+1. **Capa de Zonas y Páginas (Buddy System):** Se encarga de asignar y liberar bloques de páginas de memoria física contiguas. Es el gestor de bajo nivel.  
+2. **Capa de Objetos (Slab Allocator):** Se construye sobre el Buddy System para gestionar la asignación de pequeños objetos de memoria de tamaño fijo, que son muy comunes dentro del kernel.
+
+A continuación, exploraremos cada uno de estos algoritmos en detalle.
+
+---
+
+## **1\. El Algoritmo Buddy System**
+
+### **Propósito**
+
+El principal desafío al gestionar la memoria física es la **fragmentación externa**. Esto ocurre cuando hay suficiente memoria libre en total, pero no está en un bloque contiguo para satisfacer una solicitud. El Buddy System es un algoritmo diseñado específicamente para combatir este problema de manera eficiente.
+
+Su objetivo es gestionar regiones de memoria física contigua, asignando y liberando bloques cuyo tamaño es una potencia de 2 (ej. 1, 2, 4, 8, 16... páginas).
+
+### **Concepto de Funcionamiento**
+
+1. **Listas Libres:** El sistema mantiene varias listas, una para cada tamaño de bloque (orden). Por ejemplo, la lista\[0\] contiene bloques de 1 página, la lista\[1\] contiene bloques de 2 páginas, lista\[2\] de 4 páginas, y así sucesivamente.  
+2. **Asignación (Splitting):**  
+   * Cuando se solicita un bloque de 2^k páginas, el sistema primero busca en la lista\[k\].  
+   * Si la lista está vacía, busca en la siguiente lista más grande, lista\[k+1\].  
+   * Si encuentra un bloque en lista\[k+1\], lo divide en dos bloques "compañeros" (buddies) de tamaño 2^k.  
+   * Uno de los compañeros se asigna al solicitante, y el otro se añade a la lista\[k\].  
+   * Este proceso de división se repite recursivamente hacia arriba si es necesario.  
+3. **Liberación (Merging):**  
+   * Cuando se libera un bloque, el sistema calcula la dirección de su "compañero".  
+   * Comprueba si el compañero está libre (buscándolo en la lista correspondiente).  
+   * Si el compañero también está libre, se fusionan para formar un bloque más grande del doble de tamaño.  
+   * Este nuevo bloque se coloca en la lista de orden superior, y el proceso de fusión se intenta de nuevo recursivamente.  
+   * Si el compañero no está libre, el bloque simplemente se añade a la lista libre de su tamaño.
+
+### **Ventajas y Desventajas**
+
+* **Ventajas:**  
+  * Es muy rápido para fusionar bloques liberados, lo que combate eficazmente la fragmentación externa.  
+  * La localización de un compañero es computacionalmente muy barata (una simple operación XOR).  
+* **Desventajas:**  
+  * Sufre de **fragmentación interna**, ya que una solicitud de, por ejemplo, 5 páginas, recibirá un bloque de 8 páginas, desperdiciando 3\.  
+  * Está limitado a asignaciones de tamaño de potencia de 2\.
+
+### **Código de Ejemplo (Implementación Conceptual en C++)**
+
+Este código simula la lógica del Buddy System. No es el código real del kernel, que es mucho más complejo, pero demuestra el mecanismo de división y fusión.
+
+```C++
+#include <iostream> // Para imprimir en la consola (cout, cerr)
+#include <vector>   // Para usar el contenedor std::vector (para las listas libres)
+#include <list>     // Para usar el contenedor std::list (para los bloques dentro de cada lista libre)
+#include <cmath>    // Para funciones matemáticas (no se usa directamente, pero es relevante para potencias de 2)
+#include <map>      // Para usar std::map y rastrear los bloques asignados fácilmente
+#include <algorithm>// Para usar std::min
+
+// Implementación conceptual del Buddy Allocator
+class BuddyAllocator {
+private:
+    int total_size; // Tamaño total de la memoria que gestionará el asignador, redondeado a la siguiente potencia de 2.
+    int max_order;  // El orden más grande de bloque, corresponde al tamaño total (total_size = 2^max_order).
+    
+    // La estructura de datos principal: un vector de listas.
+    // El índice del vector representa el 'orden' (tamaño del bloque).
+    // free_lists[i] es una lista de las direcciones de inicio de los bloques libres de tamaño 2^i.
+    std::vector<std::list<int>> free_lists; 
+    
+    // Un mapa para rastrear los bloques que han sido asignados.
+    // Mapea la dirección de inicio de un bloque a su orden.
+    // Esto es crucial para saber el tamaño de un bloque cuando se libera.
+    std::map<int, int> allocated_blocks; 
+
+public:
+    // Constructor: inicializa el sistema de memoria.
+    BuddyAllocator(int size) {
+        // Cómo: Calcula el tamaño total de memoria como la potencia de 2 más cercana
+        // que sea igual or mayor al tamaño solicitado.
+        // Para qué: El Buddy System requiere que el tamaño total sea una potencia de 2.
+        total_size = 1;
+        max_order = 0;
+        while (total_size < size) {
+            total_size *= 2;
+            max_order++;
+        }
+
+        // Qué: Redimensiona el vector de listas libres para que haya una lista por cada orden posible.
+        free_lists.resize(max_order + 1);
+        
+        // Qué: Añade el bloque de memoria inicial completo (empieza en la dirección 0) a la lista de mayor orden.
+        // Para qué: Al principio, toda la memoria está disponible como un único gran bloque.
+        free_lists[max_order].push_back(0); 
+        std::cout << "Buddy Allocator inicializado con " << total_size << " unidades de memoria." << std::endl;
+    }
+
+    // Método para asignar un bloque de memoria.
+    int allocate(int requested_size) {
+        // Qué: Calcula el 'orden' necesario para la solicitud.
+        // Cómo: Encuentra la potencia de 2 más pequeña que pueda contener el tamaño solicitado.
+        // Para qué: Para determinar qué tamaño de bloque necesitamos asignar.
+        int order = 0;
+        int block_size = 1;
+        while (block_size < requested_size) {
+            block_size *= 2;
+            order++;
+        }
+
+        if (order > max_order) {
+            return -1; // La solicitud es más grande que toda la memoria disponible.
+        }
+
+        // Qué: Busca un bloque libre adecuado, empezando por el orden ideal.
+        // Cómo: Itera desde el 'order' solicitado hacia órdenes mayores.
+        // Para qué: Para encontrar el bloque libre más pequeño que pueda satisfacer la solicitud.
+        int found_order = -1;
+        for (int i = order; i <= max_order; ++i) {
+            if (!free_lists[i].empty()) {
+                found_order = i; // Encontramos un bloque en la lista de orden 'i'.
+                break;
+            }
+        }
+
+        if (found_order == -1) {
+            return -1; // No hay memoria disponible que pueda satisfacer la solicitud.
+        }
+
+        // Qué: Saca el bloque encontrado de su lista libre.
+        int block_addr = free_lists[found_order].front();
+        free_lists[found_order].pop_front();
+
+        // Qué: Si el bloque encontrado es más grande de lo necesario, lo divide.
+        // Cómo: Itera hacia abajo desde el 'found_order' hasta el 'order' solicitado. En cada paso:
+        // 1. Reduce el orden en 1.
+        // 2. Calcula la dirección del "compañero" (buddy) que se acaba de crear.
+        // 3. Añade este compañero a la lista libre de su nuevo orden.
+        // Para qué: Para mantener el principio de asignar el bloque más ajustado posible y no desperdiciar memoria.
+        while (found_order > order) {
+            found_order--;
+            int buddy_addr = block_addr + (1 << found_order); // 1 << order es 2^order
+            free_lists[found_order].push_back(buddy_addr);
+            std::cout << "Dividiendo bloque. Buddy de orden " << found_order << " en addr " << buddy_addr << " añadido a la lista libre." << std::endl;
+        }
+
+        // Qué: Registra el bloque como asignado.
+        // Para qué: Para poder liberarlo más tarde correctamente.
+        allocated_blocks[block_addr] = order;
+        std::cout << "Asignado bloque de orden " << order << " ("<< block_size <<" unidades) en la dirección " << block_addr << std::endl;
+        return block_addr;
+    }
+
+    // Método para liberar un bloque de memoria.
+    void deallocate(int addr) {
+        // Qué: Verifica si la dirección que se intenta liberar fue realmente asignada por este sistema.
+        if (allocated_blocks.find(addr) == allocated_blocks.end()) {
+            std::cerr << "Error: Dirección no encontrada en los bloques asignados." << std::endl;
+            return;
+        }
+
+        // Qué: Obtiene el orden del bloque a liberar y lo elimina del registro de asignados.
+        int order = allocated_blocks[addr];
+        allocated_blocks.erase(addr);
+
+        // Qué: Bucle principal de fusión. Intenta fusionar el bloque liberado con su compañero.
+        // Para qué: Para reconstruir bloques más grandes y combatir la fragmentación externa.
+        while (order < max_order) {
+            int block_size = 1 << order;
+            
+            // Qué: Calcula la dirección del compañero (buddy).
+            // Cómo: Usa una operación XOR implícita. Si el índice del bloque es par, el compañero está a la derecha. Si es impar, a la izquierda.
+            // Esta es la operación matemática clave del algoritmo.
+            int buddy_addr = ( (addr / block_size) % 2 == 0 ) ? (addr + block_size) : (addr - block_size);
+            
+            bool buddy_found = false;
+            auto& list = free_lists[order]; // Referencia a la lista de bloques libres del mismo tamaño.
+            
+            // Qué: Busca al compañero en la lista de bloques libres.
+            for (auto it = list.begin(); it != list.end(); ++it) {
+                if (*it == buddy_addr) {
+                    // Qué: Si se encuentra el compañero, se elimina de la lista libre.
+                    list.erase(it);
+                    buddy_found = true;
+                    break;
+                }
+            }
+
+            if (buddy_found) {
+                // Qué: Fusión exitosa.
+                // Cómo: La dirección del nuevo bloque más grande es la menor de las dos direcciones.
+                addr = std::min(addr, buddy_addr);
+                order++; // El orden del nuevo bloque es uno mayor.
+                std::cout << "Fusión exitosa. Nuevo bloque de orden " << order << " en la dirección " << addr << std::endl;
+                // El bucle continuará para intentar fusionar este nuevo bloque más grande.
+            } else {
+                // Qué: El compañero no está libre, por lo que no se puede fusionar.
+                // Cómo: Se rompe el bucle de fusión.
+                break;
+            }
+        }
+
+        // Qué: Añade el bloque (ya sea el original o el fusionado) a la lista libre correspondiente a su orden final.
+        free_lists[order].push_back(addr);
+        std::cout << "Liberado bloque. Añadido a la lista libre de orden " << order << " en la dirección " << addr << std::endl;
+    }
+};
+}
+```
+---
+
+## **2\. El Asignador Slab (SLAB Allocator)**
+
+### **Propósito**
+
+El Buddy System es bueno para páginas, pero ineficiente para objetos pequeños. Si el kernel necesita asignar memoria para un objeto de 30 bytes (como un inode o un descriptor de fichero), tendría que asignar una página completa (normalmente 4KB), desperdiciando más del 99% del espacio.
+
+El Slab Allocator resuelve este problema creando "cachés" de objetos de uso frecuente. Su objetivo es:
+
+* Eliminar la fragmentación interna causada por objetos pequeños.  
+* Hacer que la asignación y liberación de estos objetos sea extremadamente rápida.  
+* Aprovechar la caché de hardware al mantener los objetos cerca en memoria.
+
+### **Concepto de Funcionamiento**
+
+1. **Cachés:** Se crea una "caché" para cada tipo de objeto (ej. kmalloc-32, inode\_cache).  
+2. **Slabs:** Cada caché está compuesta por uno o más "slabs". Un slab es una o más páginas de memoria contiguas (obtenidas del Buddy System) que se dividen en objetos del tamaño específico de esa caché.  
+3. **Estados de un Slab:** Un slab puede estar en uno de tres estados:  
+   * **Lleno (Full):** Todos los objetos en el slab están en uso.  
+   * **Parcial (Partial):** Algunos objetos están en uso, otros están libres.  
+   * **Vacío (Empty):** Todos los objetos en el slab están libres.  
+4. **Asignación:**  
+   * Cuando se solicita un objeto, el asignador busca primero en la lista de slabs **parciales** de la caché correspondiente.  
+   * Si encuentra uno, toma un objeto libre de ese slab y lo devuelve. Esta operación es muy rápida (casi siempre una simple manipulación de punteros).  
+   * Si no hay slabs parciales, toma un slab de la lista de **vacíos**.  
+   * Si tampoco hay slabs vacíos, solicita nuevas páginas al Buddy System, las formatea como un nuevo slab, y lo usa.  
+5. **Liberación:**  
+   * Cuando un objeto se libera, simplemente se marca como "libre" dentro de su slab. No hay necesidad de buscar o fusionar.  
+   * El slab que contenía el objeto pasará de estar lleno a parcial, o de parcial a vacío.  
+   * Los slabs vacíos pueden ser devueltos al Buddy System si hay presión de memoria.
+
+### **Variantes Modernas: SLUB y SLOB**
+
+* **SLUB Allocator:** Es el asignador por defecto en los kernels modernos. Simplifica el diseño del Slab original eliminando complejas colas por CPU y metadatos, lo que mejora el rendimiento y reduce la sobrecarga de memoria, especialmente en sistemas muy grandes. Mantiene los mismos principios fundamentales.  
+* **SLOB Allocator:** Es una implementación muy simple diseñada para sistemas embebidos con memoria extremadamente limitada, donde la baja sobrecarga es más importante que el rendimiento.
+
+### **Código de Ejemplo (Implementación Conceptual en C++)**
+
+Este código simula la lógica de una caché con slabs. Un "pool de memoria" actúa como nuestro Buddy System simplificado.
+
+```C++
+#include <iostream> // Para imprimir en la consola
+#include <vector>   // No se usa directamente, pero es común en C++
+#include <list>     // Para gestionar las listas de slabs (full, partial, empty) y la lista de objetos libres dentro de un slab
+#include <stdexcept>// Para lanzar excepciones en caso de error
+
+const int PAGE_SIZE = 4096; // Qué: Define el tamaño de una página de memoria simulada.
+                            // Para qué: Los slabs se construyen a partir de una o más páginas.
+
+// Simula un slab, que es una página dividida en objetos del mismo tamaño
+class Slab {
+private:
+    char* memory;           // Qué: Un puntero al bloque de memoria cruda (la página).
+                            // Cómo: Se asigna con 'new char[PAGE_SIZE]'.
+    size_t object_size;     // Qué: El tamaño de cada objeto que este slab gestiona.
+    std::list<void*> free_list; // Qué: Lista de punteros a los objetos libres dentro del bloque 'memory'.
+                                // Para qué: Permite una asignación y liberación O(1) (muy rápida).
+
+public:
+    // Constructor: Crea y formatea un nuevo slab.
+    Slab(size_t obj_size) : object_size(obj_size) {
+        // Qué: Asigna un bloque de memoria del tamaño de una página.
+        memory = new char[PAGE_SIZE];
+        
+        // Qué: Calcula cuántos objetos caben en la página.
+        int num_objects = PAGE_SIZE / object_size;
+
+        // Qué: "Formatea" el slab.
+        // Cómo: Itera a través de la memoria y añade un puntero al inicio de cada objeto a la lista de libres.
+        // Para qué: Para preparar el slab para las asignaciones.
+        for (int i = 0; i < num_objects; ++i) {
+            free_list.push_back(memory + i * object_size);
+        }
+    }
+
+    // Destructor: Libera la memoria de la página.
+    ~Slab() {
+        delete[] memory;
+    }
+
+    // Método para asignar un objeto desde este slab.
+    void* allocate() {
+        if (is_full()) return nullptr; // No debería pasar si la lógica de la caché es correcta.
+        // Qué: Toma el primer puntero de la lista de libres.
+        void* ptr = free_list.front();
+        // Qué: Lo elimina de la lista.
+        free_list.pop_front();
+        // Para qué: Esto "asigna" el objeto. El puntero devuelto puede ser usado por el cliente.
+        return ptr;
+    }
+
+    // Método para devolver un objeto a este slab.
+    void deallocate(void* ptr) {
+        // Qué: Añade el puntero del objeto de vuelta al principio de la lista de libres.
+        // Para qué: Marca el objeto como disponible para futuras asignaciones.
+        free_list.push_front(ptr);
+    }
+    
+    // Métodos de estado.
+    bool is_full() const { return free_list.empty(); } // Un slab está lleno si su lista de libres está vacía.
+    bool is_empty() const { return free_list.size() == (PAGE_SIZE / object_size); } // Está vacío si todos los objetos están en la lista de libres.
+};
+
+// La caché que gestiona los slabs para un tipo de objeto específico.
+class SlabCache {
+private:
+    size_t object_size; // El tamaño de los objetos que esta caché gestiona.
+    
+    // Qué: Tres listas para mantener los slabs según su estado.
+    // Para qué: Esta es la clave del rendimiento del algoritmo. Permite encontrar rápidamente un lugar para asignar.
+    std::list<Slab*> full_slabs;    // Slabs donde todos los objetos están en uso.
+    std::list<Slab*> partial_slabs; // Slabs donde algunos objetos están en uso y otros libres.
+    std::list<Slab*> empty_slabs;   // Slabs donde todos los objetos están libres.
+
+public:
+    SlabCache(size_t obj_size) : object_size(obj_size) {
+        if (obj_size == 0 || obj_size > PAGE_SIZE) {
+            throw std::invalid_argument("Tamaño de objeto inválido.");
+        }
+    }
+
+    // Destructor: Debe limpiar todos los slabs creados.
+    ~SlabCache() {
+        for (auto s : full_slabs) delete s;
+        for (auto s : partial_slabs) delete s;
+        for (auto s : empty_slabs) delete s;
+    }
+
+    // Método principal para asignar un objeto desde la caché.
+    void* allocate() {
+        // Estrategia de asignación jerárquica:
+
+        // Qué: 1. Intenta asignar desde un slab parcialmente lleno.
+        // Para qué: Es la opción más eficiente, ya que reutiliza un slab que ya está en uso.
+        if (!partial_slabs.empty()) {
+            Slab* slab = partial_slabs.front();
+            void* ptr = slab->allocate();
+            // Qué: Si el slab se llena después de esta asignación, muévelo a la lista de llenos.
+            if (slab->is_full()) {
+                partial_slabs.pop_front();
+                full_slabs.push_front(slab);
+            }
+            std::cout << "Asignado desde un slab parcial." << std::endl;
+            return ptr;
+        }
+
+        // Qué: 2. Si no hay parciales, intenta usar un slab vacío.
+        // Para qué: Reutiliza un slab que fue completamente liberado, evitando pedir más memoria al sistema.
+        if (!empty_slabs.empty()) {
+            Slab* slab = empty_slabs.front();
+            void* ptr = slab->allocate();
+            // Qué: Este slab ya no está vacío, así que se mueve a la lista de parciales.
+            empty_slabs.pop_front();
+            partial_slabs.push_front(slab);
+            std::cout << "Asignado desde un slab vacío." << std::endl;
+            return ptr;
+        }
+
+        // Qué: 3. Si no hay ni parciales ni vacíos, crea un nuevo slab.
+        // Para qué: Es el último recurso. Implica solicitar una nueva página de memoria al sistema (nuestro Buddy Allocator simulado).
+        std::cout << "Creando un nuevo slab (pidiendo memoria al Buddy System)..." << std::endl;
+        Slab* new_slab = new Slab(object_size);
+        void* ptr = new_slab->allocate();
+        // Qué: El nuevo slab tiene un objeto asignado, así que es parcial.
+        partial_slabs.push_front(new_slab);
+        return ptr;
+    }
+    
+    // La liberación en una implementación real es compleja: debe encontrar a qué slab pertenece el puntero
+    // para devolverlo a su lista de libres, y luego actualizar el estado del slab (moverlo entre listas).
+    // Por simplicidad, esta parte se omite aquí.
+    void deallocate(void* ptr) {
+        // 1. Calcular a qué slab pertenece 'ptr' (usando aritmética de punteros para encontrar el inicio de la página).
+        // 2. Llamar al método 'deallocate' de ese slab.
+        // 3. Comprobar si el estado del slab cambió (de lleno a parcial, o de parcial a vacío) y moverlo a la lista correcta.
+        std::cout << "Liberación de memoria (lógica simplificada para el ejemplo)." << std::endl;
+    }
+};
+```
+## **Conclusión**
+
+El kernel de Linux utiliza un enfoque jerárquico y sofisticado para la gestión de memoria que combina la eficacia del **Buddy System** para manejar grandes bloques de memoria contigua y la velocidad y eficiencia del **Slab Allocator** para los objetos pequeños y frecuentes. Esta colaboración permite que el sistema operativo sea robusto, rápido y escalable, minimizando tanto la fragmentación externa como la interna y garantizando un alto rendimiento.
