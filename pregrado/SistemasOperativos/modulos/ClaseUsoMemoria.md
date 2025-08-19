@@ -23,21 +23,21 @@ Antes de sumergirnos en los algoritmos, es crucial entender dos conceptos:
 
 Cuando un programa se carga en la memoria, el sistema operativo no lo ve como un bloque monolítico. En su lugar, organiza su espacio de direcciones lógicas en varias secciones bien definidas. Esta es la distribución típica:
 
-      +-------------------------+  \<-- Dirección más alta  
-      |          Stack          |  (Variables locales, llamadas a función. Crece hacia abajo)  
-      |           |             |  
-      |           v             |  
-      |                         |  
-      |           ^             |  
-      |           |             |  
-      |          Heap           |  (Memoria dinámica: malloc, new. Crece hacia arriba)  
-      +-------------------------+  
-      |        BSS              |  (Variables globales/estáticas no inicializadas)  
-      +-------------------------+  
-      |   Data Segment          |  (Variables globales/estáticas inicializadas)  
-      +-------------------------+  
-      |   Text Segment          |  (Código del programa, solo lectura)  
-      +-------------------------+  \<-- Dirección más baja (0)
+      +--------------------+  \<-- Dirección más alta  
+      |        Stack       |  (Variables locales, llamadas a función. Crece hacia abajo)  
+      |          |         |  
+      |          v         |  
+      |                    |  
+      |          ^         |  
+      |          |         |  
+      |        Heap        |  (Memoria dinámica: malloc, new. Crece hacia arriba)  
+      +--------------------+  
+      |       BSS          |  (Variables globales/estáticas no inicializadas)  
+      +--------------------+  
+      |   Data Segment     |  (Variables globales/estáticas inicializadas)  
+      +--------------------+  
+      |   Text Segment     |  (Código del programa, solo lectura)  
+      +--------------------+  \<-- Dirección más baja (0)
 
 * Text Segment (.text): Contiene las instrucciones del programa compilado. Es de solo lectura para evitar que el proceso modifique su propio código.  
 * Data Segment (.data): Almacena variables globales y estáticas que están inicializadas con un valor.  
@@ -775,23 +775,23 @@ Para entender cómo estos dos algoritmos trabajan en conjunto, veamos dos escena
 **Resultado:** Tu programa recibe su bloque de 1 MB de memoria física contigua. El Buddy System ha prevenido la fragmentación externa al mantener un bloque de 256 páginas disponible en la lista de libres.
 
 ```
-                  Petición: 256 páginas (orden 8)
+             Petición: 256 páginas (orden 8)
                            |
                            v
-+---------------------------------------------------------------+
-|                Bloque Libre de 1024 páginas (orden 10)        |
-+---------------------------------------------------------------+
++--------------------------------------------------------+
+|         Bloque Libre de 1024 páginas (orden 10)        |
++--------------------------------------------------------+
                            |
                            v  (División)
 +-------------------------+-------------------------+
 | Bloque de 512 páginas   |   Añadido a free_lists[9] |
 +-------------------------+-------------------------+
-           |
-           v  (División)
-+-------------------------+-------------------------+
-| Asignado al proceso     |   Añadido a free_lists[8] |  <-- ¡Éxito!
-| (256 páginas, orden 8)  |                         |
-+-------------------------+-------------------------+
+                          |
+                          v  (División)
++--------------------------+--------------------------+
+| Asignado al proceso      |  Añadido a free_lists[8] |  <-- ¡Éxito!
+| (256 páginas, orden 8)   |                          |
++--------------------------+--------------------------+
 ```
 
 -----
@@ -837,7 +837,7 @@ Para entender cómo estos dos algoritmos trabajan en conjunto, veamos dos escena
 |  +-----------------------------------------------------------------------------+  |
 |  | Slab (Página de 4KB obtenida del Buddy System)                              |  |
 |  |                                                                             |  |
-|  | [Obj1|Obj2|Obj3|Obj4|Obj5|Obj6|Obj7|Obj8|Obj9|...|Obj16]                      |  |
+|  | [Obj1|Obj2|Obj3|Obj4|Obj5|Obj6|Obj7|Obj8|Obj9|...|Obj16]                    |  |
 |  |  ^    ^    ^                                                                |  |
 |  |  |    |    +-----> Servido para la 3ª petición.                             |  |
 |  |  |    +----------> Servido para la 2ª petición.                             |  |
@@ -845,9 +845,280 @@ Para entender cómo estos dos algoritmos trabajan en conjunto, veamos dos escena
 |  +-----------------------------------------------------------------------------+  |
 |                                     ^                                             |
 |                                     | (Solo se llama la primera vez)              |
-| +-----------------------------------------------------------------------------------+
++-----------------------------------------------------------------------------------+
 | Buddy System                                                                      |
 +-----------------------------------------------------------------------------------+
 ```
 
 Estos ejemplos demuestran la sinergia perfecta entre los dos sistemas: el **Buddy System** gestiona la memoria a gran escala (páginas), y el **Slab Allocator** utiliza esas páginas para crear un sistema de gestión de objetos pequeños, rápido y sin desperdicios.
+
+---
+¡Excelente\! Aquí tienes los códigos en C++ que corresponden a los ejemplos prácticos descritos, junto con una explicación detallada de lo que cada uno representa y cómo se relaciona con los algoritmos del kernel.
+
+-----
+
+### Códigos C/C++ para los Ejemplos Prácticos
+
+A continuación se presentan los códigos que ilustran los escenarios. Es importante recordar la separación entre el **espacio de usuario** (donde se ejecutan nuestros programas) y el **espacio de kernel** (donde operan los algoritmos de memoria). Por ello, el primer código *provoca* una acción en el kernel, mientras que el segundo *simula* una acción del kernel.
+
+-----
+
+#### Código 1: Provocando el Uso del Buddy System desde el Espacio de Usuario
+
+Este programa no ejecuta el Buddy System directamente (eso es imposible desde el espacio de usuario), sino que realiza una acción —solicitar un gran bloque de memoria— que **obliga al kernel a utilizar su asignador de páginas (el Buddy System)** para satisfacer la petición.
+
+**`buddy_system_trigger.cpp`**
+
+```cpp
+#include <iostream>   // Para std::cout, std::cerr
+#include <sys/mman.h> // Para mmap() y munmap()
+#include <unistd.h>   // Para getpagesize()
+#include <cstring>    // Para strerror()
+#include <cerrno>     // Para la variable 'errno'
+
+// Este programa demuestra cómo una aplicación en el espacio de usuario
+// puede solicitar un gran bloque de memoria, lo que a su vez hace que
+// el kernel de Linux utilice el algoritmo Buddy System para encontrar
+// y asignar las páginas de memoria física necesarias.
+
+int main() {
+    // Qué: Definimos el tamaño de la memoria que queremos solicitar.
+    // Para qué: 1 MB es un buen ejemplo, ya que requiere un número significativo
+    // y exacto de páginas contiguas (256 páginas de 4KB).
+    size_t size_to_allocate = 1024 * 1024; // 1 Megabyte
+
+    std::cout << "Solicitando " << size_to_allocate / 1024 << " KB de memoria al kernel..." << std::endl;
+    std::cout << "Esto requerirá " << size_to_allocate / getpagesize() << " páginas de memoria física (asumiendo páginas de " << getpagesize() / 1024 << "KB)." << std::endl;
+    
+    // Qué: Usamos la llamada al sistema mmap() para pedir memoria.
+    // Para qué: mmap es la forma moderna en que los programas solicitan grandes bloques de memoria virtual del kernel.
+    //
+    // Argumentos de mmap():
+    //  - nullptr: Dejamos que el kernel decida la dirección virtual de inicio.
+    //  - size_to_allocate: El tamaño que solicitamos.
+    //  - PROT_READ | PROT_WRITE: Queremos que la memoria sea legible y escribible.
+    //  - MAP_PRIVATE | MAP_ANONYMOUS: La memoria es privada para este proceso y no está respaldada por un archivo (anónima).
+    void* memory_block = mmap(nullptr, size_to_allocate, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+    // En este punto, el kernel ha recibido la petición. Su gestor de memoria virtual
+    // ha consultado al Buddy System para encontrar un bloque contiguo de 256 páginas.
+    // Si no lo encontró, intentó dividir bloques más grandes hasta obtener uno.
+
+    if (memory_block == MAP_FAILED) {
+        // Qué: Comprobamos si la llamada a mmap() falló.
+        // Para qué: Es una buena práctica siempre verificar si las llamadas al sistema tienen éxito.
+        std::cerr << "Error al asignar memoria con mmap: " << strerror(errno) << std::endl;
+        return 1;
+    }
+
+    std::cout << "¡Éxito! El kernel ha asignado un bloque de memoria virtual en la dirección: " << memory_block << std::endl;
+    
+    // Qué: Escribimos en el bloque de memoria.
+    // Para qué: La memoria virtual asignada por mmap a menudo se asigna de forma "perezosa" (lazy).
+    // Las páginas físicas reales no se asignan hasta que el programa intenta acceder a ellas.
+    // Al escribir aquí, provocamos "fallos de página" que el kernel maneja asignando
+    // la memoria física real que el Buddy System reservó.
+    std::cout << "Escribiendo en la memoria para asegurar que las páginas físicas estén asignadas..." << std::endl;
+    char* data = static_cast<char*>(memory_block);
+    data[0] = 'H';
+    data[size_to_allocate - 1] = 'Z';
+    std::cout << "Escritura completada. El primer byte es '" << data[0] << "' y el último es '" << data[size_to_allocate - 1] << "'." << std::endl;
+    
+    std::cout << "\nPresiona Enter para liberar la memoria..." << std::endl;
+    std::cin.get();
+
+    // Qué: Liberamos la memoria usando munmap().
+    // Para qué: Esto devuelve el bloque de memoria al kernel. Internamente, el kernel
+    // le devolverá las páginas físicas correspondientes al Buddy System, que intentará
+    // fusionarlas con sus "compañeros" si están libres.
+    if (munmap(memory_block, size_to_allocate) == -1) {
+        std::cerr << "Error al liberar la memoria con munmap: " << strerror(errno) << std::endl;
+        return 1;
+    }
+
+    std::cout << "Memoria liberada exitosamente." << std::endl;
+
+    return 0;
+}
+```
+
+**¿Cómo compilar y ejecutar?**
+
+```bash
+# Compilar el programa
+g++ buddy_system_trigger.cpp -o buddy_trigger
+
+# Ejecutar el programa
+./buddy_trigger
+
+# (Opcional) Para ver la llamada al sistema mmap() en acción:
+strace ./buddy_trigger
+```
+
+-----
+
+#### Código 2: Simulación del Slab Allocator para Paquetes de Red
+
+Este programa **simula** el comportamiento del kernel al gestionar objetos pequeños y frecuentes. Creamos nuestra propia versión del `SlabCache` (basada en la implementación conceptual anterior) y la usamos para gestionar objetos que representan metadatos de paquetes de red (`SkBuff`).
+
+**`slab_allocator_simulation.cpp`**
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <list>
+#include <stdexcept>
+#include <iomanip> // Para std::setw
+
+// =======================================================================================
+//   DEFINICIÓN DE LA CACHÉ SLAB (versión simplificada para la simulación)
+// =======================================================================================
+
+const int PAGE_SIZE = 4096; // Tamaño de una página simulada
+
+// Simula un slab, que es una página dividida en objetos
+class Slab {
+private:
+    char* memory;
+    size_t object_size;
+    std::list<void*> free_list;
+    int num_objects_total;
+
+public:
+    Slab(size_t obj_size) : object_size(obj_size) {
+        memory = new char[PAGE_SIZE];
+        num_objects_total = PAGE_SIZE / object_size;
+        for (int i = 0; i < num_objects_total; ++i) {
+            free_list.push_back(memory + i * object_size);
+        }
+    }
+    ~Slab() { delete[] memory; }
+    void* allocate() {
+        if (free_list.empty()) return nullptr;
+        void* ptr = free_list.front();
+        free_list.pop_front();
+        return ptr;
+    }
+    void deallocate(void* ptr) { free_list.push_front(ptr); }
+    bool is_full() const { return free_list.empty(); }
+    bool is_empty() const { return free_list.size() == num_objects_total; }
+    int free_count() const { return free_list.size(); }
+};
+
+// La caché que gestiona los slabs para un tipo de objeto
+class SlabCache {
+private:
+    size_t object_size;
+    std::list<Slab*> full_slabs;
+    std::list<Slab*> partial_slabs;
+    std::list<Slab*> empty_slabs;
+    int total_slabs = 0;
+
+public:
+    SlabCache(size_t obj_size) : object_size(obj_size) {}
+    ~SlabCache() {
+        for (auto s : full_slabs) delete s;
+        for (auto s : partial_slabs) delete s;
+        for (auto s : empty_slabs) delete s;
+    }
+
+    void* allocate() {
+        Slab* target_slab = nullptr;
+        if (!partial_slabs.empty()) {
+            target_slab = partial_slabs.front();
+        } else if (!empty_slabs.empty()) {
+            target_slab = empty_slabs.front();
+            empty_slabs.pop_front();
+            partial_slabs.push_front(target_slab);
+        } else {
+            std::cout << "    [CACHE INFO] No hay slabs parciales o vacíos. PIDIENDO NUEVA PAGINA AL BUDDY SYSTEM..." << std::endl;
+            target_slab = new Slab(object_size);
+            total_slabs++;
+            partial_slabs.push_front(target_slab);
+        }
+        
+        void* ptr = target_slab->allocate();
+        if (target_slab->is_full()) {
+            partial_slabs.remove(target_slab);
+            full_slabs.push_front(target_slab);
+        }
+        return ptr;
+    }
+
+    // Deallocate (simplificado, no maneja movimiento de slabs para este ejemplo)
+    void deallocate(void* ptr) { /* ... */ }
+
+    void print_status() const {
+        std::cout << "--- Estado de la Cache (Object Size: " << object_size << " B) ---" << std::endl;
+        std::cout << "  Slabs Totales:  " << total_slabs << std::endl;
+        std::cout << "  Slabs Llenos:   " << full_slabs.size() << std::endl;
+        std::cout << "  Slabs Parciales:" << partial_slabs.size() << std::endl;
+        std::cout << "  Slabs Vacíos:   " << empty_slabs.size() << std::endl;
+        if (!partial_slabs.empty()) {
+            std::cout << "    -> Slab parcial principal tiene " << partial_slabs.front()->free_count() << " objetos libres." << std::endl;
+        }
+        std::cout << "------------------------------------------\n" << std::endl;
+    }
+};
+
+// =======================================================================================
+//   SIMULACIÓN DEL ESCENARIO DE RED
+// =======================================================================================
+
+// Qué: Una estructura simple para simular los metadatos de un paquete de red.
+// En el kernel real, esta estructura (sk_buff) es mucho más compleja.
+struct SkBuff {
+    int packet_id;
+    int data_len;
+    char source_ip[16];
+    char dest_ip[16];
+    // ... otros campos
+};
+
+int main() {
+    std::cout << "Iniciando simulación de gestión de paquetes de red con Slab Allocator..." << std::endl;
+    
+    // Qué: Creamos una caché específica para nuestros objetos SkBuff.
+    // Para qué: Esto es análogo a la 'skbuff_head_cache' del kernel de Linux.
+    SlabCache skb_cache(sizeof(SkBuff));
+    skb_cache.print_status();
+
+    std::vector<SkBuff*> received_packets;
+
+    int packets_to_simulate = (PAGE_SIZE / sizeof(SkBuff)) + 5; // Simular lo suficiente para llenar un slab y empezar otro.
+
+    // Qué: Bucle que simula la llegada de paquetes de red.
+    for (int i = 0; i < packets_to_simulate; ++i) {
+        std::cout << "-> Paquete " << std::setw(2) << i << " llegado. Solicitando un SkBuff de la caché..." << std::endl;
+        
+        // Qué: Pedimos memoria a nuestra caché.
+        // Cómo: La caché gestiona internamente de qué slab servir el objeto.
+        // Para qué: Esto simula la llamada a 'kmem_cache_alloc()' en el kernel, que es extremadamente rápida.
+        SkBuff* new_packet = static_cast<SkBuff*>(skb_cache.allocate());
+        
+        // Simular el uso del objeto
+        new_packet->packet_id = 1000 + i;
+        received_packets.push_back(new_packet);
+    }
+    
+    std::cout << "\n>>> Se han recibido todos los paquetes. <<<" << std::endl;
+    skb_cache.print_status();
+
+    std::cout << "Simulación finalizada. La caché ha gestionado eficientemente las asignaciones." << std::endl;
+    
+    // La liberación de memoria se gestionaría en el destructor de la caché.
+    return 0;
+}
+```
+
+**¿Cómo compilar y ejecutar?**
+
+```bash
+# Compilar el programa
+g++ slab_allocator_simulation.cpp -o slab_sim
+
+# Ejecutar el programa
+./slab_sim
+```
+
+Al ejecutar `slab_sim`, observarás cómo la primera vez que se necesita memoria, la caché "pide una nueva página". Para las siguientes asignaciones, simplemente usa el slab que ya tiene, demostrando la eficiencia del modelo. Verás cómo el slab pasa de `parcial` a `lleno` una vez que todos sus objetos han sido asignados.
