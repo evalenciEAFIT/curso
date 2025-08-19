@@ -23,20 +23,20 @@ Antes de sumergirnos en los algoritmos, es crucial entender dos conceptos:
 
 Cuando un programa se carga en la memoria, el sistema operativo no lo ve como un bloque monolítico. En su lugar, organiza su espacio de direcciones lógicas en varias secciones bien definidas. Esta es la distribución típica:
 
-     \+------------------------+  \<-- Dirección más alta  
-      |      Stack               |  (Variables locales, llamadas a función. Crece hacia abajo)  
-      |           |                  |  
-      |           v                 |  
-      |                              |  
-      |           ^                 |  
-      |           |                  |  
+     \+-------------------------+  \<-- Dirección más alta  
+      |      Stack              |  (Variables locales, llamadas a función. Crece hacia abajo)  
+      |           |             |  
+      |           v             |  
+      |                         |  
+      |           ^             |  
+      |           |             |  
       |       Heap              |  (Memoria dinámica: malloc, new. Crece hacia arriba)  
-      \+-----------------------+  
+      \+------------------------+  
       |        BSS              |  (Variables globales/estáticas no inicializadas)  
-      \+-----------------------+  
-      |   Data Segment   |  (Variables globales/estáticas inicializadas)  
-      \+-----------------------+  
-      |   Text Segment    |  (Código del programa, solo lectura)  
+      \+------------------------+  
+      |   Data Segment          |  (Variables globales/estáticas inicializadas)  
+      \+------------------------+  
+      |   Text Segment          |  (Código del programa, solo lectura)  
       \+------------------------+  \<-- Dirección más baja (0)
 
 * Text Segment (.text): Contiene las instrucciones del programa compilado. Es de solo lectura para evitar que el proceso modifique su propio código.  
