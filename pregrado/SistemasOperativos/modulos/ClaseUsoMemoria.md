@@ -112,7 +112,7 @@ Este código ilustra el uso de la memoria dinámica (Heap) y muestra la ubicaci�
 
 ### Código en C (malloc y free)
 
-**C**
+'''C
 
 \#include \<stdio.h\>  
 \#include \<stdlib.h\>
@@ -150,6 +150,7 @@ int main() {
 
     return 0;  
 }
+'''
 
 ### **Código en C++ (new y delete)**
 
