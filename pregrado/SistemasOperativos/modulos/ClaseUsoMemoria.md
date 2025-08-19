@@ -735,3 +735,119 @@ public:
 ## **Conclusión**
 
 El kernel de Linux utiliza un enfoque jerárquico y sofisticado para la gestión de memoria que combina la eficacia del **Buddy System** para manejar grandes bloques de memoria contigua y la velocidad y eficiencia del **Slab Allocator** para los objetos pequeños y frecuentes. Esta colaboración permite que el sistema operativo sea robusto, rápido y escalable, minimizando tanto la fragmentación externa como la interna y garantizando un alto rendimiento.
+
+¡Perfecto\! Agregar ejemplos prácticos y relacionables es clave para solidificar la comprensión de estos conceptos abstractos.
+
+A continuación, se añade una nueva sección al documento con ilustraciones prácticas de cómo y por qué el kernel de Linux utiliza estos algoritmos en situaciones del día a día.
+
+-----
+
+### Ejemplos Prácticos Ilustrativos
+
+Para entender cómo estos dos algoritmos trabajan en conjunto, veamos dos escenarios muy comunes en el funcionamiento de un sistema Linux.
+
+-----
+
+#### Ejemplo 1: El Buddy System en Acción (Solicitud de Memoria de un Proceso)
+
+**Escenario:** Imagina que estás ejecutando un programa que necesita procesar una imagen de gran tamaño. El programa solicita al sistema operativo un bloque de memoria grande y contiguo de **1 Megabyte (MB)** para cargar la imagen.
+
+**Flujo de Eventos:**
+
+1.  **Llamada al Sistema:** Tu programa, a través de una llamada a `malloc()` en la biblioteca de C, termina ejecutando una llamada al sistema como `mmap()` para pedirle 1 MB de memoria al kernel.
+
+2.  **El Kernel Recibe la Petición:** El Gestor de Memoria Virtual (VMM) del kernel intercepta la solicitud. Sabe que necesita encontrar **1 MB de RAM física** para asignarla al espacio de direcciones virtuales de tu proceso.
+
+3.  **Cálculo del Requisito:** El kernel opera con páginas. Si el tamaño de página es de 4 Kilobytes (KB), entonces 1 MB equivale a `1024 KB / 4 KB = 256` páginas.
+
+4.  **Interviene el Buddy System:** El VMM le pide al asignador de páginas (el Buddy System) un bloque contiguo de 256 páginas.
+
+      * 256 es una potencia de 2 (`2^8`), por lo que el Buddy System necesita un bloque de **orden 8**.
+      * Primero, busca en su `free_lists[8]`. Si hay un bloque libre de 256 páginas, lo toma, lo asigna y el trabajo termina. ¡Este es el caso ideal\!
+
+5.  **Mecanismo de División (Splitting):** Supongamos que `free_lists[8]` está vacía, pero hay un bloque libre en `free_lists[10]`, que corresponde a un bloque de `2^10 = 1024` páginas (4 MB).
+
+      * El Buddy System toma este bloque de 4 MB.
+      * Lo **divide** en dos "compañeros" de 512 páginas (orden 9). Uno de ellos (2 MB) se añade a `free_lists[9]`.
+      * Toma el otro compañero de 512 páginas y lo **vuelve a dividir** en dos "compañeros" de 256 páginas (orden 8).
+      * Ahora tiene dos bloques de orden 8. Uno lo asigna a tu proceso para cargar la imagen. El otro lo añade a la lista `free_lists[8]`, dejándolo disponible para futuras solicitudes.
+
+**Resultado:** Tu programa recibe su bloque de 1 MB de memoria física contigua. El Buddy System ha prevenido la fragmentación externa al mantener un bloque de 256 páginas disponible en la lista de libres.
+
+```
+                  Petición: 256 páginas (orden 8)
+                           |
+                           v
++---------------------------------------------------------------+
+|                Bloque Libre de 1024 páginas (orden 10)        |
++---------------------------------------------------------------+
+                           |
+                           v  (División)
++-------------------------+-------------------------+
+| Bloque de 512 páginas   |   Añadido a free_lists[9] |
++-------------------------+-------------------------+
+           |
+           v  (División)
++-------------------------+-------------------------+
+| Asignado al proceso     |   Añadido a free_lists[8] |  <-- ¡Éxito!
+| (256 páginas, orden 8)  |                         |
++-------------------------+-------------------------+
+```
+
+-----
+
+#### Ejemplo 2: El Slab Allocator en Acción (Manejo de Conexiones de Red)
+
+**Escenario:** Tu computadora está actuando como un servidor web y recibe cientos de pequeñas peticiones de red por segundo. Cada vez que llega un paquete de red, el kernel necesita crear una pequeña estructura de metadatos para gestionarlo.
+
+**Flujo de Eventos:**
+
+1.  **Llegada de Paquetes:** La tarjeta de red recibe paquetes y notifica al kernel.
+
+2.  **Necesidad de un Objeto Pequeño:** Para cada paquete, el subsistema de red del kernel necesita asignar memoria para una estructura llamada `sk_buff` (Socket Buffer). Esta estructura es relativamente pequeña, digamos unos 256 bytes.
+
+3.  **¿Por qué NO usar el Buddy System?:** Si el kernel usara el Buddy System para cada `sk_buff` de 256 bytes, tendría que asignar la unidad mínima que éste maneja: una página completa de 4096 bytes. Esto resultaría en un desperdicio de `4096 - 256 = 3840` bytes. ¡Más del 93% de la memoria se desperdiciaría\! Esto es una **fragmentación interna** masiva y, además, sería muy lento.
+
+4.  **Interviene el Slab Allocator:** El kernel está diseñado para esta situación. Tiene una "caché" específica para estos objetos, llamada `skbuff_head_cache`.
+
+      * Cuando llega el **primer paquete**, el asignador Slab pide un slab a esta caché. Como la caché está vacía, no tiene slabs `parciales` ni `vacíos`.
+      * El asignador Slab le pide una página nueva (4096 bytes) al **Buddy System**.
+      * Una vez que la obtiene, "formatea" esta página dividiéndola en `4096 / 256 = 16` objetos `sk_buff`. Esta página formateada es ahora un "slab".
+      * Le entrega el primer objeto de 256 bytes al subsistema de red y mueve el slab a su lista de `partial_slabs` (porque ahora tiene 1 objeto usado y 15 libres).
+
+5.  **Llegan los Siguientes Paquetes:** Para los siguientes 15 paquetes que llegan, el proceso es **extremadamente rápido**:
+
+      * La caché `skbuff_head_cache` ya tiene un slab en su lista `partial_slabs`.
+      * Simplemente toma el siguiente objeto libre de ese slab y lo entrega. No hay necesidad de hablar con el Buddy System ni de realizar cálculos complejos. Es casi tan rápido como incrementar un puntero.
+
+6.  **Liberación de Objetos:** Cuando el kernel termina de procesar un paquete, la estructura `sk_buff` se libera.
+
+      * El objeto de 256 bytes simplemente se devuelve a la lista de libres de su slab de origen.
+      * Si el slab estaba `lleno`, ahora pasa a estar `parcial`. Si estaba `parcial` y este era su último objeto en uso, pasa a estar `vacío`.
+
+**Resultado:** El sistema maneja un alto volumen de pequeñas asignaciones y liberaciones de memoria de manera increíblemente eficiente, sin desperdiciar memoria y con una sobrecarga de CPU mínima.
+
+```
+       Petición: sk_buff (256 B)        Petición: sk_buff         Petición: sk_buff
+             |                               |                         |
+             v                               v                         v
++-----------------------------------------------------------------------------------+
+| Slab Allocator (skbuff_head_cache)                                                |
+|                                                                                   |
+|  +-----------------------------------------------------------------------------+  |
+|  | Slab (Página de 4KB obtenida del Buddy System)                              |  |
+|  |                                                                             |  |
+|  | [Obj1|Obj2|Obj3|Obj4|Obj5|Obj6|Obj7|Obj8|Obj9|...|Obj16]                      |  |
+|  |  ^    ^    ^                                                                |  |
+|  |  |    |    +-----> Servido para la 3ª petición.                             |  |
+|  |  |    +----------> Servido para la 2ª petición.                             |  |
+|  |  +---------------> Servido para la 1ª petición.                             |  |
+|  +-----------------------------------------------------------------------------+  |
+|                                     ^                                             |
+|                                     | (Solo se llama la primera vez)              |
+| +-----------------------------------------------------------------------------------+
+| Buddy System                                                                      |
++-----------------------------------------------------------------------------------+
+```
+
+Estos ejemplos demuestran la sinergia perfecta entre los dos sistemas: el **Buddy System** gestiona la memoria a gran escala (páginas), y el **Slab Allocator** utiliza esas páginas para crear un sistema de gestión de objetos pequeños, rápido y sin desperdicios.
