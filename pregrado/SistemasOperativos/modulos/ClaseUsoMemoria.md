@@ -114,41 +114,41 @@ Este código ilustra el uso de la memoria dinámica (Heap) y muestra la ubicaci�
 
 ```c
 
-\#include \<stdio.h\>  
-\#include \<stdlib.h\>
+#include <stdio.h>
+#include <stdlib.h>
 
-int global\_initialized\_var \= 10; // Almacenada en el segmento .data  
-int global\_uninitialized\_var;      // Almacenada en el segmento .bss
+int global_initialized_var = 10; // Almacenada en el segmento .data
+int global_uninitialized_var;      // Almacenada en el segmento .bss
 
-void function() {  
-    int stack\_var \= 30; // Almacenada en el Stack  
-    printf("Dirección de variable en Stack: %p\\n", \&stack\_var);  
+void function() {
+    int stack_var = 30; // Almacenada en el Stack
+    printf("Dirección de variable en Stack: %p\n", &stack_var);
 }
 
-int main() {  
-    static int static\_var \= 20; // Almacenada en .data o .bss dependiendo de inicialización
+int main() {
+    static int static_var = 20; // Almacenada en .data o .bss dependiendo de inicialización
 
-    // Asignación dinámica en el Heap  
-    int \*heap\_var \= (int\*) malloc(sizeof(int));  
-    if (heap\_var \== NULL) {  
-        fprintf(stderr, "Fallo al asignar memoria en el heap\\n");  
-        return 1;  
-    }  
-    \*heap\_var \= 40;
+    // Asignación dinámica en el Heap
+    int *heap_var = (int*) malloc(sizeof(int));
+    if (heap_var == NULL) {
+        fprintf(stderr, "Fallo al asignar memoria en el heap\n");
+        return 1;
+    }
+    *heap_var = 40;
 
-    printf("--- Mapa de Memoria (Direcciones) \---\\n");  
-    printf("Dirección del código (main):   %p\\n", main);  
-    printf("Dirección de var global init:    %p\\n", \&global\_initialized\_var);  
-    printf("Dirección de var estática:     %p\\n", \&static\_var);  
-    printf("Dirección de var en Heap:        %p\\n", heap\_var);  
-    function();  
-    printf("--------------------------------------\\n");
+    printf("--- Mapa de Memoria (Direcciones) ---\n");
+    printf("Dirección del código (main):   %p\n", main);
+    printf("Dirección de var global init:    %p\n", &global_initialized_var);
+    printf("Dirección de var estática:     %p\n", &static_var);
+    printf("Dirección de var en Heap:        %p\n", heap_var);
+    function();
+    printf("--------------------------------------\n");
 
-    // Liberar la memoria del Heap  
-    free(heap\_var);  
-    heap\_var \= NULL; // Buena práctica para evitar punteros colgantes
+    // Liberar la memoria del Heap
+    free(heap_var);
+    heap_var = NULL; // Buena práctica para evitar punteros colgantes
 
-    return 0;  
+    return 0;
 }
 ```
 
@@ -156,40 +156,40 @@ int main() {
 
 ```c++
 
-\#include \<iostream\>  
-\#include \<vector\>
+#include <iostream>
+#include <vector>
 
-class MyObject {  
-public:  
-    MyObject() {  
-        std::cout \<\< "Objeto creado en el Heap." \<\< std::endl;  
-    }  
-    \~MyObject() {  
-        std::cout \<\< "Objeto destruido." \<\< std::endl;  
-    }  
+class MyObject {
+public:
+    MyObject() {
+        std::cout << "Objeto creado en el Heap." << std::endl;
+    }
+    ~MyObject() {
+        std::cout << "Objeto destruido." << std::endl;
+    }
 };
 
-int main() {  
-    // Asignación de un objeto simple en el Heap  
-    MyObject\* obj\_ptr \= new MyObject();
+int main() {
+    // Asignación de un objeto simple en el Heap
+    MyObject* obj_ptr = new MyObject();
 
-    // Asignación de un arreglo en el Heap  
-    int\* array\_ptr \= new int\[10\]; // Asigna 10 enteros
+    // Asignación de un arreglo en el Heap
+    int* array_ptr = new int[10]; // Asigna 10 enteros
 
-    std::cout \<\< "Dirección del objeto en el Heap: " \<\< obj\_ptr \<\< std::endl;  
-    std::cout \<\< "Dirección del arreglo en el Heap: " \<\< array\_ptr \<\< std::endl;
+    std::cout << "Dirección del objeto en el Heap: " << obj_ptr << std::endl;
+    std::cout << "Dirección del arreglo en el Heap: " << array_ptr << std::endl;
 
-    // La principal diferencia con C es que new/delete llaman  
-    // al constructor y destructor del objeto, gestionando su ciclo de vida.  
-      
-    // Liberar la memoria  
-    delete obj\_ptr;       // Para un solo objeto  
-    delete\[\] array\_ptr;   // Para un arreglo
+    // La principal diferencia con C es que new/delete llaman
+    // al constructor y destructor del objeto, gestionando su ciclo de vida.
+    
+    // Liberar la memoria
+    delete obj_ptr;       // Para un solo objeto
+    delete[] array_ptr;   // Para un arreglo
 
-    obj\_ptr \= nullptr;  
-    array\_ptr \= nullptr;
+    obj_ptr = nullptr;
+    array_ptr = nullptr;
 
-    return 0;  
+    return 0;
 }
 ```
 ---
