@@ -23,8 +23,8 @@ Antes de sumergirnos en los algoritmos, es crucial entender dos conceptos:
 
 Cuando un programa se carga en la memoria, el sistema operativo no lo ve como un bloque monolítico. En su lugar, organiza su espacio de direcciones lógicas en varias secciones bien definidas. Esta es la distribución típica:
 
-     +-------------------------+  \<-- Dirección más alta  
-     |          Stack          |  (Variables locales, llamadas a función. Crece hacia abajo)  
+      +-------------------------+  \<-- Dirección más alta  
+      |          Stack          |  (Variables locales, llamadas a función. Crece hacia abajo)  
       |           |             |  
       |           v             |  
       |                         |  
@@ -35,7 +35,7 @@ Cuando un programa se carga en la memoria, el sistema operativo no lo ve como un
       |        BSS              |  (Variables globales/estáticas no inicializadas)  
       +-------------------------+  
       |   Data Segment          |  (Variables globales/estáticas inicializadas)  
-     \+-------------------------+  
+      +-------------------------+  
       |   Text Segment          |  (Código del programa, solo lectura)  
       +-------------------------+  \<-- Dirección más baja (0)
 
@@ -216,8 +216,6 @@ La memoria virtual permite que cada proceso crea que tiene un enorme espacio de 
 
 En la práctica, los tres sistemas han convergido en sus características principales (paginación por demanda, memoria virtual, compresión de memoria), pero difieren en las políticas y heurísticas que aplican para optimizar el rendimiento.
 
-**¡Excelente adición\! Una parte fundamental de la gestión de memoria es saber cómo observarla en un sistema real. Aquí tienes la sección añadida al final del documento.**
-
 ---
 
 ## **7\. Herramientas para Monitorear la Memoria en Linux**
@@ -230,20 +228,20 @@ Es el comando más simple y directo para obtener una instantánea del uso de la 
 
 Uso:
 
-Bash
+```Bash
 
 free \-h
-
+```
 La opción \-h (human-readable) muestra los valores en formatos más legibles como Kilobytes (K), Megabytes (M) o Gigabytes (G).
 
 Salida de Ejemplo:
 
-Bash
+```Bash
 
              total        used        free      shared  buff/cache   available  
 Mem:          7.7Gi       3.4Gi       1.2Gi       215Mi       3.1Gi       3.9Gi  
 Swap:         2.0Gi       512Mi       1.5Gi
-
+```
 Interpretación de las Columnas (Fila Mem):
 
 * total: Memoria RAM total instalada.  
@@ -259,15 +257,15 @@ top es un monitor de sistema interactivo que muestra una lista de los procesos q
 
 Uso:
 
-Bash
+```Bash
 
 top  
 \# O, si está instalado:  
 htop
-
+```
 Salida de Ejemplo (top):
 
-Bash
+```Bash
 
 top \- 15:30:45 up 2 days,  4:11,  1 user,  load average: 0.15, 0.20, 0.25  
 Tasks: 250 total,   1 running, 249 sleeping,   0 stopped,   0 zombie  
@@ -278,7 +276,7 @@ MiB Swap:   2048.0 total,   1536.0 free,    512.0 used.   3950.6 avail Mem
     PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND  
    1234 user      20   0   2.5g   512m    48m S   5.0   6.4   2:35.10 firefox  
    5678 root      20   0   1.2g   128m    32m S   1.2   1.6   0:15.80 Xorg
-
+```
 Columnas de Memoria Clave:
 
 * VIRT (Virtual Memory): Memoria virtual total usada por el proceso. Incluye todo: código, datos, bibliotecas compartidas y memoria que ha sido mapeada en el espacio de direcciones pero no necesariamente está en RAM (puede estar en swap).  
@@ -294,20 +292,20 @@ Uso:
 
 Para obtener una actualización cada 2 segundos, 5 veces:
 
-Bash
+```Bash
 
 vmstat 2 5
-
+```
 Salida de Ejemplo:
 
-Bash
+```Bash
 
 procs \-----------memory---------- \---swap-- \-----io---- \-system-- \------cpu-----  
  r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st  
  1  0 524288 1280200 3219800 3219800    2    5    50    60  100  200  5  2 93  0  0  
  0  0 524288 1280100 3219800 3219800    0    0     0    20  102  205  2  1 97  0  0  
  ...
-
+```
 Columnas de Memoria y Swap Clave:
 
 * swpd: Cantidad de memoria virtual utilizada (en swap).  
@@ -321,13 +319,13 @@ Este no es un comando, sino un archivo virtual que proporciona una gran cantidad
 
 Uso:
 
-Bash
+```Bash
 
 cat /proc/meminfo
-
+```
 Salida de Ejemplo (extracto):
 
-Bash
+```Bash
 
 MemTotal:        8136084 kB  
 MemFree:         1279840 kB  
@@ -340,4 +338,4 @@ Inactive:        2500000 kB
 ...  
 Slab:             220000 kB  
 ...
-
+```
