@@ -229,6 +229,284 @@ int main() {
     return 0;
 }
 ```
+Código mejorado
+```cpp
+#include <iostream>      // Para entrada/salida
+#include <vector>        // Para listas dinámicas
+#include <ctime>         // Para medir tiempo
+#include <cstddef>       // Para size_t
+#include <new>           // Para bad_alloc
+#include <sys/sysinfo.h> // Para sysinfo (monitoreo de RAM/swap)
+#include <cstdint>       // Para uintptr_t
+#include <algorithm>     // Para std::find
+
+// Constantes para el BuddyAllocator
+constexpr int MAX_ORDER = 22;                // Máximo orden: 2^22 ≈ 4 MB por bloque
+constexpr size_t MEMORY_POOL_SIZE = (1ULL << (MAX_ORDER + 10));  // Pool: ~4 GB para manejar vectores grandes
+constexpr size_t MIN_BLOCK_SIZE = (1 << 12); // Mínimo bloque: 4 KB (como páginas del kernel)
+constexpr size_t VECTOR_SIZE = 1000000;    // (1 millón de elementos, ~4 MB por vector)
+
+constexpr size_t VECTOR_SIZE = 100000000;    // 100 millones de enteros 
+                                             //(~400 MB por vector; ~1.2 GB total para 3 vectores). 
+                                             // Usa memoria física si RAM es suficiente; de lo contrario, recurre a swap (memoria virtual).
+
+// Estructura para estadísticas de memoria
+struct MemoryStats {
+    long long total_ram;    // Total RAM en bytes
+    long long free_ram;     // RAM libre en bytes
+    long long total_swap;   // Total swap en bytes
+    long long free_swap;    // Swap libre en bytes
+    long long used_swap;    // Swap usada
+};
+
+// Obtiene estadísticas de memoria usando sysinfo
+// Justificación: sysinfo es rápido y preciso para RAM/swap; permite detectar si se usará memoria virtual
+MemoryStats get_memory_stats() {
+    MemoryStats stats = {0, 0, 0, 0, 0};
+    struct sysinfo si;
+    if (sysinfo(&si) == 0) {
+        stats.total_ram = si.totalram * si.mem_unit;
+        stats.free_ram = si.freeram * si.mem_unit;
+        stats.total_swap = si.totalswap * si.mem_unit;
+        stats.free_swap = si.freeswap * si.mem_unit;
+        stats.used_swap = stats.total_swap - stats.free_swap;
+    } else {
+        std::cerr << "Error: Fallo en sysinfo." << std::endl;
+    }
+    return stats;
+}
+
+// Imprime estadísticas de memoria
+// Justificación: Monitorea RAM/swap para confirmar uso de memoria física vs. virtual
+void print_memory_stats(const std::string& label) {
+    MemoryStats stats = get_memory_stats();
+    std::cout << "[" << label << "]" << std::endl;
+    std::cout << "  Total RAM: " << stats.total_ram / (1024 * 1024) << " MB" << std::endl;
+    std::cout << "  RAM Libre: " << stats.free_ram / (1024 * 1024) << " MB" << std::endl;
+    std::cout << "  Total Swap (Virtual): " << stats.total_swap / (1024 * 1024) << " MB" << std::endl;
+    std::cout << "  Swap Usada: " << stats.used_swap / (1024 * 1024) << " MB" << std::endl;
+    if (stats.used_swap > 0) {
+        std::cout << "  -> Usando memoria virtual (swap). Rendimiento puede ser lento." << std::endl;
+    } else if (stats.free_ram > (VECTOR_SIZE * sizeof(int) * 3) / 2) {
+        std::cout << "  -> Usando memoria física (RAM). Rendimiento óptimo." << std::endl;
+    } else {
+        std::cout << "  -> RAM baja; posible uso de swap pronto." << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+// Clase BuddyAllocator: Combina allocator y Buddy System
+// Mejoras:
+// - Merge en free_block para reducir fragmentación.
+// - Chequeo de RAM/swap antes de asignaciones grandes.
+// - Pool grande (~4 GB) para vectores de 100M+ elementos.
+// Justificación: Emula el kernel; asegura memoria suficiente vía virtual (swap/overcommit).
+class BuddyAllocator {
+private:
+    std::vector<void*> free_lists[MAX_ORDER + 1];  // Bloques libres por orden
+    void* memory_pool;                             // Pool de memoria
+    size_t allocated_bytes;                        // Monitoreo de bytes asignados
+
+    // Calcula el orden (potencia de 2 superior)
+    int get_order(size_t size) const {
+        int order = 0;
+        size_t power = 1;
+        while (power < size) {
+            power <<= 1;
+            ++order;
+        }
+        return order;
+    }
+
+    // Divide un bloque mayor en dos buddies
+    void split_block(int order) {
+        if (free_lists[order].empty()) {
+            if (order + 1 > MAX_ORDER) {
+                throw std::bad_alloc();  // Sin memoria en pool; Linux usará swap
+            }
+            split_block(order + 1);
+        }
+        void* block = free_lists[order].back();
+        free_lists[order].pop_back();
+        size_t block_size = 1ULL << order;
+
+        void* buddy1 = block;
+        void* buddy2 = static_cast<char*>(block) + (block_size / 2);
+
+        int lower_order = order - 1;
+        free_lists[lower_order].push_back(buddy1);
+        free_lists[lower_order].push_back(buddy2);
+    }
+
+    // Calcula la dirección del buddy
+    void* get_buddy(void* ptr, int order) const {
+        size_t block_size = 1ULL << order;
+        uintptr_t addr = reinterpret_cast<uintptr_t>(ptr);
+        uintptr_t base_addr = reinterpret_cast<uintptr_t>(memory_pool);
+        uintptr_t buddy_addr = addr ^ block_size;  // XOR calcula buddy
+        if (buddy_addr < base_addr || buddy_addr >= base_addr + MEMORY_POOL_SIZE) {
+            return nullptr;
+        }
+        return reinterpret_cast<void*>(buddy_addr);
+    }
+
+    // Combina buddies libres
+    // Justificación: Reduce fragmentación, como el kernel, asegurando memoria disponible
+    void merge_buddies(void* ptr, int order) {
+        if (order >= MAX_ORDER) {
+            free_lists[order].push_back(ptr);
+            return;
+        }
+
+        void* buddy = get_buddy(ptr, order);
+        if (!buddy) {
+            free_lists[order].push_back(ptr);
+            return;
+        }
+
+        auto it = std::find(free_lists[order].begin(), free_lists[order].end(), buddy);
+        if (it == free_lists[order].end()) {
+            free_lists[order].push_back(ptr);
+            return;
+        }
+
+        free_lists[order].erase(it);
+        void* merged_block = (ptr < buddy) ? ptr : buddy;
+        merge_buddies(merged_block, order + 1);
+    }
+
+public:
+    BuddyAllocator() : allocated_bytes(0) {
+        // Verifica RAM/swap antes de crear pool grande
+        MemoryStats stats = get_memory_stats();
+        if (stats.free_ram + stats.free_swap < MEMORY_POOL_SIZE * 1.5) {
+            std::cerr << "Advertencia: RAM+swap puede no ser suficiente para pool de "
+                      << MEMORY_POOL_SIZE / (1024 * 1024) << " MB." << std::endl;
+        }
+        memory_pool = new (std::nothrow) char[MEMORY_POOL_SIZE];
+        if (!memory_pool) throw std::bad_alloc();
+        int pool_order = get_order(MEMORY_POOL_SIZE);
+        if (pool_order > MAX_ORDER) pool_order = MAX_ORDER;
+        free_lists[pool_order].push_back(memory_pool);
+    }
+
+    ~BuddyAllocator() {
+        delete[] static_cast<char*>(memory_pool);
+    }
+
+    // Asigna memoria con chequeo de RAM/swap
+    void* alloc(size_t size) {
+        if (size == 0) return nullptr;
+        MemoryStats stats = get_memory_stats();
+        size_t needed = size * 1.5;  // Margen para overhead
+        if (stats.free_ram < needed && stats.free_swap < needed) {
+            std::cerr << "Advertencia: RAM y swap bajos para asignar " << size / (1024 * 1024)
+                      << " MB. Puede causar thrashing." << std::endl;
+        } else if (stats.free_ram < needed) {
+            std::cout << "Usará memoria virtual (swap) para asignar " << size / (1024 * 1024) << " MB." << std::endl;
+        }
+
+        int order = get_order(size);
+        if (order > MAX_ORDER) throw std::bad_alloc();
+
+        if (free_lists[order].empty()) {
+            split_block(order);
+        }
+
+        if (free_lists[order].empty()) throw std::bad_alloc();
+        void* block = free_lists[order].back();
+        free_lists[order].pop_back();
+        allocated_bytes += 1ULL << order;
+        return block;
+    }
+
+    // Libera memoria con merge
+    void free_block(void* ptr, size_t size) {
+        if (!ptr) return;
+        int order = get_order(size);
+        allocated_bytes -= 1ULL << order;
+        merge_buddies(ptr, order);
+    }
+
+    size_t get_allocated_bytes() const { return allocated_bytes; }
+};
+
+// Programa principal: Suma vectores grandes
+// Mejoras:
+// - VECTOR_SIZE=100M (~400 MB por vector).
+// - Chequeos de RAM/swap en cada asignación.
+// - Merge en liberación para optimizar memoria.
+// - Monitoreo constante para detectar uso de swap.
+// Justificación: Asegura memoria suficiente vía overcommit/swap; optimiza para minimizar thrashing.
+int main() {
+    try {
+        // Monitoreo inicial
+        print_memory_stats("Antes de inicializar allocator");
+
+        BuddyAllocator allocator;
+
+        print_memory_stats("Después de inicializar pool (~4 GB)");
+
+        // Asignar vectores grandes
+        std::cout << "Asignando 3 vectores de " << VECTOR_SIZE << " enteros (~"
+                  << (VECTOR_SIZE * sizeof(int) * 3) / (1024 * 1024) << " MB total)." << std::endl;
+        int* vec1 = static_cast<int*>(allocator.alloc(VECTOR_SIZE * sizeof(int)));
+        int* vec2 = static_cast<int*>(allocator.alloc(VECTOR_SIZE * sizeof(int)));
+        int* sum_vec = static_cast<int*>(allocator.alloc(VECTOR_SIZE * sizeof(int)));
+
+        if (!vec1 || !vec2 || !sum_vec) {
+            std::cerr << "Error: Fallo en asignación (incluso con virtual)." << std::endl;
+            return 1;
+        }
+
+        print_memory_stats("Después de asignar vectores");
+
+        // Inicializar (toca páginas, fuerza carga a RAM o swap)
+        for (size_t i = 0; i < VECTOR_SIZE; ++i) {
+            vec1[i] = static_cast<int>(i % 100);
+            vec2[i] = static_cast<int>((i + 50) % 100);
+        }
+
+        print_memory_stats("Después de inicializar vectores");
+
+        // Suma y mide tiempo
+        clock_t start = clock();
+        for (size_t i = 0; i < VECTOR_SIZE; ++i) {
+            sum_vec[i] = vec1[i] + vec2[i];
+        }
+        clock_t end = clock();
+        double time_spent = static_cast<double>(end - start) / CLOCKS_PER_SEC;
+
+        print_memory_stats("Después de suma");
+
+        // Resultados
+        std::cout << "Suma de primeros 5 elementos: ";
+        for (size_t i = 0; i < 5; ++i) {
+            std::cout << sum_vec[i] << (i < 4 ? ", " : "\n");
+        }
+        std::cout << "Tiempo de suma: " << time_spent << " segundos." << std::endl;
+        std::cout << "Memoria asignada por BuddyAllocator: " << allocator.get_allocated_bytes() / (1024 * 1024) << " MB." << std::endl;
+        if (time_spent > 2.0) {
+            std::cout << "Tiempo alto: Probable uso de swap (memoria virtual). Aumenta RAM o swap." << std::endl;
+        } else {
+            std::cout << "Tiempo bajo: Usó principalmente RAM física." << std::endl;
+        }
+
+        // Libera inmediatamente
+        allocator.free_block(vec1, VECTOR_SIZE * sizeof(int));
+        allocator.free_block(vec2, VECTOR_SIZE * sizeof(int));
+        allocator.free_block(sum_vec, VECTOR_SIZE * sizeof(int));
+
+        print_memory_stats("Después de liberar memoria");
+
+    } catch (const std::bad_alloc& e) {
+        std::cerr << "Error: Memoria insuficiente (RAM+swap agotados)." << std::endl;
+        return 1;
+    }
+
+    return 0;
+}
+```
 
 ## Conclusión
 
