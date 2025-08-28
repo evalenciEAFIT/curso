@@ -1,92 +1,85 @@
-Memoria Física y Virtual en Linux: Allocator y Buddy System
-Introducción
-En Linux, la gestión de memoria es clave para ejecutar programas de forma eficiente y segura. Este documento explica de forma simple la memoria física y la memoria virtual, destacando el papel del allocator (asignador de memoria) y el Buddy System (Sistema de Compañeros). Incluye un ejemplo en C++ que usa un allocator basado en Buddy System para sumar vectores grandes, mostrando cómo la memoria física y virtual trabajan juntas.
-Memoria Física
-La memoria física es la RAM real del computador, donde se guardan datos y programas mientras están activos.
+# Memoria Física y Virtual en Linux: Allocator y Buddy System
 
-Características:
+## Introducción
 
-Rápida (acceso en nanosegundos).
-Limitada (ej. 4 GB, 8 GB).
-Dividida en páginas de 4 KB por el kernel de Linux.
-Visible con comandos como free -h.
+En Linux, la gestión de memoria es clave para ejecutar programas de forma eficiente y segura. Este documento explica de forma simple la **memoria física** y la **memoria virtual**, destacando el papel del **allocator** (asignador de memoria) y el **Buddy System** (Sistema de Compañeros). Incluye un ejemplo en C++ que usa un allocator basado en Buddy System para sumar vectores grandes, mostrando cómo la memoria física y virtual trabajan juntas.
 
+## Memoria Física
 
-Importancia:
+La **memoria física** es la RAM real del computador, donde se guardan datos y programas mientras están activos.
 
-Permite ejecutar programas rápidamente.
-Si se agota, Linux usa memoria virtual (swap), que es más lenta.
+- **Características:**
+  - Rápida (acceso en nanosegundos).
+  - Limitada (ej. 4 GB, 8 GB).
+  - Dividida en **páginas** de 4 KB por el kernel de Linux.
+  - Visible con comandos como `free -h`.
 
+- **Importancia:**
+  - Permite ejecutar programas rápidamente.
+  - Si se agota, Linux usa memoria virtual (swap), que es más lenta.
 
+## Memoria Virtual
 
-Memoria Virtual
-La memoria virtual es una abstracción que hace creer a cada programa que tiene su propia memoria exclusiva, aunque comparta la RAM física.
+La **memoria virtual** es una abstracción que hace creer a cada programa que tiene su propia memoria exclusiva, aunque comparta la RAM física.
 
-Características:
+- **Características:**
+  - Cada programa tiene su propio **espacio de direcciones virtuales**.
+  - Mapea direcciones virtuales a físicas (RAM) o al disco (swap).
+  - Usa la **Unidad de Gestión de Memoria (MMU)** para traducir direcciones.
+  - El **swap** (espacio en disco) actúa como memoria extra cuando la RAM no alcanza.
 
-Cada programa tiene su propio espacio de direcciones virtuales.
-Mapea direcciones virtuales a físicas (RAM) o al disco (swap).
-Usa la Unidad de Gestión de Memoria (MMU) para traducir direcciones.
-El swap (espacio en disco) actúa como memoria extra cuando la RAM no alcanza.
+- **Importancia:**
+  - Permite ejecutar programas grandes aunque la RAM sea limitada.
+  - Asegura que los programas no se "choquen" al acceder a la memoria.
+  - Evita que el sistema colapse si la RAM se llena, aunque usar swap ralentiza.
 
+## Allocator y Buddy System
 
-Importancia:
+### Allocator
 
-Permite ejecutar programas grandes aunque la RAM sea limitada.
-Asegura que los programas no se "choquen" al acceder a la memoria.
-Evita que el sistema colapse si la RAM se llena, aunque usar swap ralentiza.
+El **allocator** es el mecanismo que asigna memoria a los programas.
 
+- **En el espacio de usuario:** Los programas en C++ usan `new`, `std::vector` o allocators personalizados para pedir memoria. Estas funciones piden memoria virtual al kernel.
+- **En el kernel:** El kernel asigna páginas físicas de RAM a las solicitudes virtuales.
 
+**Importancia:** Simplifica la gestión de memoria para los programadores y optimiza su uso.
 
-Allocator y Buddy System
-Allocator
-El allocator es el mecanismo que asigna memoria a los programas.
+### Buddy System
 
-En el espacio de usuario: Los programas en C++ usan new, std::vector o allocators personalizados para pedir memoria. Estas funciones piden memoria virtual al kernel.
-En el kernel: El kernel asigna páginas físicas de RAM a las solicitudes virtuales.
+El **Buddy System** es un algoritmo del kernel de Linux para gestionar la memoria física.
 
-Importancia: Simplifica la gestión de memoria para los programadores y optimiza su uso.
-Buddy System
-El Buddy System es un algoritmo del kernel de Linux para gestionar la memoria física.
+- **Cómo funciona:**
+  - Divide la RAM en bloques de tamaños en potencias de 2 (ej. 4 KB, 8 KB, 16 KB).
+  - Cada bloque tiene un "compañero" (buddy). Si se necesita un bloque pequeño, se divide uno grande en dos buddies.
+  - Al liberar memoria, los buddies se combinan para reducir **fragmentación** (huecos inutilizables).
 
-Cómo funciona:
+- **Importancia:**
+  - Asigna memoria física rápido y eficiente.
+  - Reduce fragmentación, asegurando que la RAM se use bien.
 
-Divide la RAM en bloques de tamaños en potencias de 2 (ej. 4 KB, 8 KB, 16 KB).
-Cada bloque tiene un "compañero" (buddy). Si se necesita un bloque pequeño, se divide uno grande en dos buddies.
-Al liberar memoria, los buddies se combinan para reducir fragmentación (huecos inutilizables).
+### ¿Por qué no dividir Allocator y Buddy System?
 
+- **Allocator** es la interfaz (alto nivel) que los programas usan para pedir memoria.
+- **Buddy System** es la estrategia (bajo nivel) del kernel para asignar páginas físicas.
+- En este ejemplo, combinamos ambos en un `BuddyAllocator` porque:
+  - En user-space, no accedemos al Buddy System real del kernel, así que lo emulamos.
+  - Un allocator personalizado puede usar la lógica de Buddy para mostrar cómo funciona.
+  - No es necesario separarlos aquí: el allocator usa la estrategia de Buddy directamente, simplificando el código.
 
-Importancia:
+## Ejemplo en C++: Suma de Vectores Grandes con BuddyAllocator
 
-Asigna memoria física rápido y eficiente.
-Reduce fragmentación, asegurando que la RAM se use bien.
-
-
-
-¿Por qué no dividir Allocator y Buddy System?
-
-Allocator es la interfaz (alto nivel) que los programas usan para pedir memoria.
-Buddy System es la estrategia (bajo nivel) del kernel para asignar páginas físicas.
-En este ejemplo, combinamos ambos en un BuddyAllocator porque:
-En user-space, no accedemos al Buddy System real del kernel, así que lo emulamos.
-Un allocator personalizado puede usar la lógica de Buddy para mostrar cómo funciona.
-No es necesario separarlos aquí: el allocator usa la estrategia de Buddy directamente, simplificando el código.
-
-
-
-Ejemplo en C++: Suma de Vectores Grandes con BuddyAllocator
 Este ejemplo crea un allocator que emula el Buddy System para asignar memoria a dos vectores grandes (10 millones de enteros, ~40 MB cada uno), suma sus elementos y mide el tiempo. Muestra:
 
-Memoria física: Si los vectores caben en RAM, la suma es rápida.
-Memoria virtual: Si la RAM se agota, Linux usa swap, la suma se ralentiza, pero no falla, mostrando la importancia de ambos tipos de memoria.
+- **Memoria física:** Si los vectores caben en RAM, la suma es rápida.
+- **Memoria virtual:** Si la RAM se agota, Linux usa swap, la suma se ralentiza, pero no falla, mostrando la importancia de ambos tipos de memoria.
 
-Instrucciones para Linux:
+**Instrucciones para Linux:**
+- Guarda el código en `suma_vectores.cpp`.
+- Compila: `g++ suma_vectores.cpp -o suma_vectores`.
+- Ejecuta: `./suma_vectores`.
+- Monitorea memoria con `free -h` o `top` para ver si usa swap.
 
-Guarda el código en suma_vectores.cpp.
-Compila: g++ suma_vectores.cpp -o suma_vectores.
-Ejecuta: ./suma_vectores.
-Monitorea memoria con free -h o top para ver si usa swap.
-
+```cpp
 #include <iostream>      // Para entrada/salida
 #include <vector>        // Para listas dinámicas
 #include <ctime>         // Para medir tiempo
@@ -235,6 +228,8 @@ int main() {
 
     return 0;
 }
+```
 
-Conclusión
-La memoria física (RAM) es rápida pero limitada, mientras la memoria virtual permite usar más memoria (con swap) y protege procesos. El allocator (como BuddyAllocator) simplifica la asignación, y el Buddy System organiza la RAM en bloques eficientes. No es necesario dividirlos en este ejemplo porque el allocator usa la lógica de Buddy directamente, emulando cómo Linux gestiona memoria. El ejemplo de suma de vectores muestra que la memoria física es clave para velocidad, pero la virtual evita fallos cuando la RAM no alcanza.
+## Conclusión
+
+La **memoria física** (RAM) es rápida pero limitada, mientras la **memoria virtual** permite usar más memoria (con swap) y protege procesos. El **allocator** (como `BuddyAllocator`) simplifica la asignación, y el **Buddy System** organiza la RAM en bloques eficientes. No es necesario dividirlos en este ejemplo porque el allocator usa la lógica de Buddy directamente, emulando cómo Linux gestiona memoria. El ejemplo de suma de vectores muestra que la memoria física es clave para velocidad, pero la virtual evita fallos cuando la RAM no alcanza.
