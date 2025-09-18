@@ -198,7 +198,7 @@ La multiplicación de matrices tiene características que la hacen ideal para la
 ### 1. Paralelización a nivel de filas
 
 **Idea**: Asignar cada fila de la matriz resultado a un hilo diferente.
-
+[Multiplicación de Matrices con Hilos](/2_concurrencia_sincronizacion/multiplicacionmatrices_hilos.md)
 ```c
 // Estructura para pasar datos a los hilos
 typedef struct {
@@ -394,7 +394,7 @@ Para una implementación eficiente con concurrencia, recomendamos:
    - Ajustar según el tamaño de las matrices
 
 ```c
-// Versión mejorada con pthreads (paralelización por filas)
+// Versión con pthreads (paralelización por filas)
 #include <pthread.h>
 
 typedef struct {
