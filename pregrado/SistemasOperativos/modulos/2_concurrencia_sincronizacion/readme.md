@@ -334,6 +334,8 @@ void multiplicarPorBloques(int filas_A, int columnas_A, int **matriz_A,
 - Requiere ajuste del tamaño de bloque según el hardware
 - Implementación más compleja que la paralelización por filas
 
+---
+
 ### 3. Paralelización anidada
 
 **Idea**: Combinar paralelización a nivel de filas con paralelización dentro de cada fila.
@@ -376,6 +378,8 @@ void multiplicarAnidado(int filas_A, int columnas_A, int **matriz_A,
 **Consideraciones**:
 - Puede generar sobrecarga por creación excesiva de hilos
 - Requiere ajuste del número de hilos según el hardware
+
+---
 
 ## Implementación Recomendada
 
