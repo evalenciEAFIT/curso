@@ -670,7 +670,6 @@ void verMatriz(int filas, int columnas, int **matriz){
    }
 }
 ```
-
 ### Explicación:
 
 - Imprime la matriz en formato tabular.
@@ -702,9 +701,7 @@ long verConsumoMemoria(){
    return uso_memoria;
 }
 ```
-
-# Explicación:
-
+--- 
 ## 6. Conceptos Clave de Sistemas Operativos
 
 ### 6.1. Hilos (Threads)
