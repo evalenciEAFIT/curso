@@ -269,55 +269,8 @@ long verConsumoMemoria(){
 }
 ```
 
-## Explicación de los Cambios
 
-### Modificaciones Principales
-
-1. **Eliminación de la constante NUM_HILOS**:
-   - Se eliminó la constante `#define NUM_HILOS 4` que fijaba el número de hilos.
-   - Ahora el número de hilos se especifica como argumento en la línea de comandos.
-
-2. **Modificación en la función main()**:
-   - Ahora se espera 6 argumentos en lugar de 5: `./programa filas_A columnas_A filas_B columnas_B num_hilos`
-   - Se añadió validación para el número de hilos:
-     ```c
-     int num_hilos = atoi(argv[5]);
-     
-     // Validar número de hilos
-     if (num_hilos <= 0) {
-         printf("Error: El número de hilos debe ser mayor que 0\n");
-         return -1;
-     }
-     
-     // Limitar número máximo de hilos para evitar sobrecarga
-     if (num_hilos > 100) {
-         printf("Advertencia: Limitando el número de hilos a 100\n");
-         num_hilos = 100;
-     }
-     ```
-
-3. **Actualización de la función multiplicarMatrizConcurrente()**:
-   - Ahora recibe un parámetro adicional: `int num_hilos`
-   - Se utiliza memoria dinámica para los arrays de hilos y datos:
-     ```c
-     pthread_t *hilos = (pthread_t *)malloc(num_hilos * sizeof(pthread_t));
-     DatosHilo *datos_hilos = (DatosHilo *)malloc(num_hilos * sizeof(DatosHilo));
-     ```
-   - Se libera la memoria al final de la función:
-     ```c
-     free(hilos);
-     free(datos_hilos);
-     ```
-
-4. **Actualización en la llamada a multiplicarMatrizConcurrente()**:
-   - Se pasa el número de hilos como argumento:
-     ```c
-     multiplicarMatrizConcurrente(filas_A, columnas_A, matriz_A,
-                                  filas_B, columnas_B, matriz_B,
-                                  matriz_resultado, &operaciones, num_hilos);
-     ```
-
-### Ventajas de esta Modificación
+### Ventajas
 
 1. **Flexibilidad**:
    - Permite experimentar con diferentes números de hilos para encontrar el óptimo según el hardware y el tamaño de las matrices.
