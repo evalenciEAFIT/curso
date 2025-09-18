@@ -2,6 +2,8 @@
 
 ## Código con Concurrencia por Hilos
 [Regresar](readme.md)
+Para modificar el código y que el número de hilos sea un argumento de línea de comandos (CLI), necesitas hacer los siguientes cambios:
+
 ```c
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,9 +11,6 @@
 #include <time.h>
 #include <sys/resource.h>
 #include <pthread.h>
-
-// Número de hilos a utilizar
-#define NUM_HILOS 4
 
 // Estructura para pasar datos a los hilos
 typedef struct {
@@ -33,7 +32,8 @@ void *procesarFilas(void *arg);
 // Función para multiplicar matrices usando hilos
 void multiplicarMatrizConcurrente(int filas_A, int columnas_A, int **matriz_A,
                                   int filas_B, int columnas_B, int **matriz_B,
-                                  int **matriz_resultado, long long *operaciones);
+                                  int **matriz_resultado, long long *operaciones,
+                                  int num_hilos);
 
 // Función para inicializar matriz con valores aleatorios
 void inicializarMatriz(int filas, int columnas, int **matriz);
@@ -46,8 +46,8 @@ long verConsumoMemoria();
 
 int main(int argc, char *argv[]){    
     // Verificar argumentos de entrada
-    if (argc != 5) {
-        printf("Uso: %s filas_A columnas_A filas_B columnas_B\n", argv[0]);
+    if (argc != 6) {
+        printf("Uso: %s filas_A columnas_A filas_B columnas_B num_hilos\n", argv[0]);
         return -1;
     }
     
@@ -56,12 +56,25 @@ int main(int argc, char *argv[]){
     int columnas_A = atoi(argv[2]);
     int filas_B = atoi(argv[3]);
     int columnas_B = atoi(argv[4]);
+    int num_hilos = atoi(argv[5]);
 
     // Verificar compatibilidad de matrices para multiplicación
     if (columnas_A != filas_B){
         printf("Error: Columnas de A (%d) deben ser iguales a filas de B (%d)\n", 
                columnas_A, filas_B);
         return -1;
+    }
+    
+    // Validar número de hilos
+    if (num_hilos <= 0) {
+        printf("Error: El número de hilos debe ser mayor que 0\n");
+        return -1;
+    }
+    
+    // Limitar número máximo de hilos para evitar sobrecarga
+    if (num_hilos > 100) {
+        printf("Advertencia: Limitando el número de hilos a 100\n");
+        num_hilos = 100;
     }
         
     // Reservar memoria para matriz A
@@ -94,7 +107,7 @@ int main(int argc, char *argv[]){
     // Usar la versión concurrente de la multiplicación
     multiplicarMatrizConcurrente(filas_A, columnas_A, matriz_A,
                                  filas_B, columnas_B, matriz_B,
-                                 matriz_resultado, &operaciones);
+                                 matriz_resultado, &operaciones, num_hilos);
     fin = clock();
     tiempo_CPU_usado = ((double)(fin-inicio))/CLOCKS_PER_SEC;
 
@@ -113,7 +126,7 @@ int main(int argc, char *argv[]){
     printf("Tiempo de CPU: %.4f segundos\n", tiempo_CPU_usado);
     printf("Consumo de memoria: %ld KB\n", verConsumoMemoria());
     printf("Total operaciones: %lld op.\n", operaciones);
-    printf("Número de hilos utilizados: %d\n", NUM_HILOS);
+    printf("Número de hilos utilizados: %d\n", num_hilos);
  
     // Liberar memoria de matriz A
     for(int i=0; i<filas_A; i++) free(matriz_A[i]);
@@ -160,29 +173,30 @@ void *procesarFilas(void *arg) {
 // Función principal de multiplicación concurrente
 void multiplicarMatrizConcurrente(int filas_A, int columnas_A, int **matriz_A,
                                   int filas_B, int columnas_B, int **matriz_B,
-                                  int **matriz_resultado, long long *operaciones) {
+                                  int **matriz_resultado, long long *operaciones,
+                                  int num_hilos) {
     
     // Arreglo para almacenar los identificadores de los hilos
-    pthread_t hilos[NUM_HILOS];
+    pthread_t *hilos = (pthread_t *)malloc(num_hilos * sizeof(pthread_t));
     
     // Arreglo para almacenar los datos de cada hilo
-    DatosHilo datos_hilos[NUM_HILOS];
+    DatosHilo *datos_hilos = (DatosHilo *)malloc(num_hilos * sizeof(DatosHilo));
     
     // Calcular cuántas filas procesará cada hilo
-    int filas_por_hilo = filas_A / NUM_HILOS;
+    int filas_por_hilo = filas_A / num_hilos;
     
     // Inicializar el contador total de operaciones
     *operaciones = 0;
     
     // Crear los hilos
-    for(int i=0; i<NUM_HILOS; i++) {
+    for(int i=0; i<num_hilos; i++) {
         // Configurar los datos para este hilo
         datos_hilos[i].id_hilo = i;
         datos_hilos[i].fila_inicio = i * filas_por_hilo;
         datos_hilos[i].fila_fin = (i+1) * filas_por_hilo;
         
         // Si es el último hilo, asignarle las filas restantes
-        if(i == NUM_HILOS-1) {
+        if(i == num_hilos-1) {
             datos_hilos[i].fila_fin = filas_A;
         }
         
@@ -201,11 +215,15 @@ void multiplicarMatrizConcurrente(int filas_A, int columnas_A, int **matriz_A,
     }
     
     // Esperar a que todos los hilos terminen
-    for(int i=0; i<NUM_HILOS; i++) {
+    for(int i=0; i<num_hilos; i++) {
         pthread_join(hilos[i], NULL);
         // Sumar las operaciones realizadas por este hilo al total
         *operaciones += datos_hilos[i].operaciones;
     }
+    
+    // Liberar memoria reservada para los hilos y datos
+    free(hilos);
+    free(datos_hilos);
 }
 
 // Inicializa matriz con valores aleatorios entre 0 y 9
@@ -251,85 +269,101 @@ long verConsumoMemoria(){
 }
 ```
 
-## Explicación del Código Concurrente
+## Explicación de los Cambios
 
-### Introducción a la Concurrencia por Hilos
+### Modificaciones Principales
 
-La concurrencia es una técnica que permite ejecutar múltiples tareas simultáneamente, aprovechando los múltiples núcleos de los procesadores modernos. En el caso de la multiplicación de matrices, esta técnica es especialmente útil porque:
+1. **Eliminación de la constante NUM_HILOS**:
+   - Se eliminó la constante `#define NUM_HILOS 4` que fijaba el número de hilos.
+   - Ahora el número de hilos se especifica como argumento en la línea de comandos.
 
-1. Cada elemento de la matriz resultado se calcula independientemente de los demás
-2. No hay dependencias entre los cálculos de diferentes elementos
-3. Es una operación computacionalmente intensiva que se beneficia del paralelismo
+2. **Modificación en la función main()**:
+   - Ahora se espera 6 argumentos en lugar de 5: `./programa filas_A columnas_A filas_B columnas_B num_hilos`
+   - Se añadió validación para el número de hilos:
+     ```c
+     int num_hilos = atoi(argv[5]);
+     
+     // Validar número de hilos
+     if (num_hilos <= 0) {
+         printf("Error: El número de hilos debe ser mayor que 0\n");
+         return -1;
+     }
+     
+     // Limitar número máximo de hilos para evitar sobrecarga
+     if (num_hilos > 100) {
+         printf("Advertencia: Limitando el número de hilos a 100\n");
+         num_hilos = 100;
+     }
+     ```
 
-### Implementación con Hilos
+3. **Actualización de la función multiplicarMatrizConcurrente()**:
+   - Ahora recibe un parámetro adicional: `int num_hilos`
+   - Se utiliza memoria dinámica para los arrays de hilos y datos:
+     ```c
+     pthread_t *hilos = (pthread_t *)malloc(num_hilos * sizeof(pthread_t));
+     DatosHilo *datos_hilos = (DatosHilo *)malloc(num_hilos * sizeof(DatosHilo));
+     ```
+   - Se libera la memoria al final de la función:
+     ```c
+     free(hilos);
+     free(datos_hilos);
+     ```
 
-Nuestra implementación utiliza la biblioteca pthreads de POSIX para crear y gestionar hilos. El enfoque principal es dividir el trabajo entre varios hilos, donde cada hilo se encarga de calcular un conjunto de filas de la matriz resultado.
+4. **Actualización en la llamada a multiplicarMatrizConcurrente()**:
+   - Se pasa el número de hilos como argumento:
+     ```c
+     multiplicarMatrizConcurrente(filas_A, columnas_A, matriz_A,
+                                  filas_B, columnas_B, matriz_B,
+                                  matriz_resultado, &operaciones, num_hilos);
+     ```
 
-#### Estructura de Datos para Hilos
+### Ventajas de esta Modificación
 
-Hemos definido una estructura `DatosHilo` que contiene toda la información que un hilo necesita para realizar su trabajo:
+1. **Flexibilidad**:
+   - Permite experimentar con diferentes números de hilos para encontrar el óptimo según el hardware y el tamaño de las matrices.
+   - Facilita la comparación de rendimiento entre diferentes configuraciones.
 
-```c
-typedef struct {
-    int id_hilo;                // Identificador del hilo
-    int fila_inicio;            // Fila inicial que procesará este hilo
-    int fila_fin;               // Fila final que procesará este hilo
-    int filas_A;                // Número de filas de la matriz A
-    int columnas_A;             // Número de columnas de la matriz A
-    int columnas_B;             // Número de columnas de la matriz B
-    int **matriz_A;             // Puntero a la matriz A
-    int **matriz_B;             // Puntero a la matriz B
-    int **matriz_resultado;     // Puntero a la matriz resultado
-    long long operaciones;      // Contador de operaciones realizadas por este hilo
-} DatosHilo;
+2. **Adaptabilidad**:
+   - El programa se adapta automáticamente al número de núcleos disponibles en el sistema.
+   - Permite ajustar el número de hilos según las características del problema.
+
+3. **Control de recursos**:
+   - Se añadió un límite máximo de 100 hilos para evitar sobrecargar el sistema.
+   - Se valida que el número de hilos sea un valor positivo.
+
+### Cómo Usar el Programa
+
+Para ejecutar el programa con un número específico de hilos, utiliza el siguiente formato:
+
+```bash
+./multiplicacion_matrices filas_A columnas_A filas_B columnas_B num_hilos
 ```
 
-Esta estructura nos permite pasar de manera organizada todos los datos necesarios a cada hilo.
+Ejemplos:
+```bash
+# Usar 2 hilos
+./multiplicacion_matrices 500 500 500 500 2
 
-#### Función del Hilo
+# Usar 4 hilos
+./multiplicacion_matrices 1000 1000 1000 1000 4
 
-La función `procesarFilas` es la que ejecuta cada hilo. Recibe un puntero a una estructura `DatosHilo` y realiza los siguientes pasos:
-
-1. Convierte el argumento a la estructura de datos
-2. Inicializa su contador local de operaciones
-3. Procesa las filas asignadas (desde `fila_inicio` hasta `fila_fin-1`)
-4. Para cada fila, calcula todos los elementos de esa fila en la matriz resultado
-5. Finaliza el hilo con `pthread_exit`
-
-#### Función Principal de Multiplicación Concurrente
-
-La función `multiplicarMatrizConcurrente` es la responsable de:
-
-1. Crear los hilos necesarios (definidos por la constante `NUM_HILOS`)
-2. Dividir las filas de la matriz resultado entre los hilos
-3. Configurar los datos para cada hilo
-4. Iniciar la ejecución de los hilos con `pthread_create`
-5. Esperar a que todos los hilos terminen con `pthread_join`
-6. Sumar las operaciones realizadas por cada hilo para obtener el total
-
-La distribución de filas se hace de manera equitativa. Si el número de filas no es divisible entre el número de hilos, el último hilo se encarga de las filas restantes.
-
-### Ventajas de este Enfoque
-
-1. **Simplicidad**: La implementación es relativamente sencilla de entender y mantener
-2. **Escalabilidad**: Al aumentar el número de núcleos, podemos aumentar el número de hilos para mejorar el rendimiento
-3. **Balance de carga**: Cada hilo procesa aproximadamente el mismo número de filas, lo que distribuye el trabajo de manera equitativa
-4. **Mínima sincronización**: Los hilos trabajan en diferentes regiones de la matriz resultado, por lo que no necesitan sincronizarse durante el cálculo
+# Usar 8 hilos
+./multiplicacion_matrices 2000 2000 2000 2000 8
+```
 
 ### Consideraciones de Rendimiento
 
-1. **Número óptimo de hilos**: Generalmente, el número óptimo de hilos es igual al número de núcleos del procesador. Un número mayor puede generar sobrecarga por la gestión de hilos.
-2. **Tamaño de las matrices**: Para matrices pequeñas, el overhead de crear y gestionar hilos puede superar los beneficios del paralelismo.
-3. **Localidad de datos**: Cada hilo accede a todas las matrices de entrada, lo que puede generar conflictos en la caché. Para matrices muy grandes, podría ser beneficioso transponer la matriz B para mejorar la localidad de datos.
+1. **Número óptimo de hilos**:
+   - Generalmente, el número óptimo de hilos es igual al número de núcleos del procesador.
+   - Para sistemas con hiperthreading, puedes probar con el doble de núcleos.
+   - Experimenta con diferentes valores para encontrar el óptimo para tu hardware específico.
 
-### Posibles Mejoras
+2. **Tamaño de las matrices**:
+   - Para matrices pequeñas, usar demasiados hilos puede degradar el rendimiento debido al overhead de creación y gestión de hilos.
+   - Para matrices grandes, más hilos generalmente mejora el rendimiento hasta cierto punto.
 
-1. **Ajuste dinámico del número de hilos**: Podríamos detectar el número de núcleos disponibles y ajustar `NUM_HILOS` en consecuencia.
-2. **Transposición de la matriz B**: Esto mejoraría la localidad de datos y podría aumentar el rendimiento.
-3. **Paralelización anidada**: Para sistemas con muchos núcleos, podríamos combinar paralelización a nivel de filas con paralelización dentro de cada fila.
-4. **Balance de carga dinámico**: En lugar de asignar estáticamente las filas, podríamos usar una cola de tareas donde los hilos toman filas según terminan su trabajo actual.
+3. **Balance de carga**:
+   - El programa distribuye las filas de manera equitativa entre los hilos.
+   - Si el número de filas no es divisible entre el número de hilos, el último hilo procesa las filas restantes.
 
-### Conclusión
-
-La implementación de concurrencia mediante hilos en la multiplicación de matrices ofrece una mejora significativa en el rendimiento, especialmente para matrices grandes. Nuestra implementación divide el trabajo de manera equitativa entre los hilos, permitiendo aprovechar los múltiples núcleos de los procesadores modernos. Este enfoque es un excelente punto de partida para optimizaciones más avanzadas.
-```
+Esta modificación hace que el programa sea más flexible y adaptable a diferentes entornos y requisitos, permitiendo un mejor aprovechamiento de los recursos del sistema.
