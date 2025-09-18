@@ -866,9 +866,9 @@ int main(int argc, char *argv[]){
 - **Estadísticas de rendimiento**: Se muestran las dimensiones, tiempo de ejecución, consumo de memoria, total de operaciones y número de procesos utilizados.
 - **Liberación de memoria**: Se libera la memoria en orden inverso a la reserva: primero los arrays de cada fila y luego el array de punteros.
 
-## 3. Funciones de Conversión de Matrices
+## Funciones de Conversión de Matrices
 
-### 3.1. Conversión de 2D a 1D
+### Conversión de 2D a 1D (de dos dimensiones a una dimensión)
 
 ```c
 int *matriz2Da1D(int **matriz, int filas, int columnas) {
