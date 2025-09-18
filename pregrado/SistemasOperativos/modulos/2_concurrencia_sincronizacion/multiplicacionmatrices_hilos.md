@@ -306,13 +306,11 @@ Ejemplos:
 ---
 
 ### EXPLICACIÓN
-
-
 # Explicación Detallada del Código de Multiplicación de Matrices con Concurrencia por Hilos
 
 ## Introducción
 
-Este documento explica en detalle el código que implementa la multiplicación de matrices utilizando concurrencia mediante hilos POSIX (pthreads). La implementación divide el trabajo entre múltiples hilos para aprovechar los múltiples núcleos de los procesadores modernos, mejorando significativamente el rendimiento para matrices grandes.
+Explicación detallada del código que implementa la multiplicación de matrices utilizando concurrencia mediante hilos POSIX (pthreads). La implementación divide el trabajo entre múltiples hilos para aprovechar los múltiples núcleos de los procesadores modernos, mejorando significativamente el rendimiento para matrices grandes.
 
 ## Estructura General del Código
 
