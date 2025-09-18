@@ -2,12 +2,10 @@
 Este es el corazón de la concurrencia, uno de los temas más desafiantes y fundamentales.
 
 ---
- 
-
-```markdown
+Ejemplo con la multiplicación de matrices
 # Concurrencia en Multiplicación de Matrices
 
-## Código Base Mejorado (Versión Secuencial)
+## Código Base (Versión Secuencial)
 
 ```c
 #include <stdio.h>
