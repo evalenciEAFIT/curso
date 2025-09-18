@@ -382,6 +382,8 @@ void multiplicarAnidado(int filas_A, int columnas_A, int **matriz_A,
 ---
 
 ## Implementación Recomendada
+multiplicacionmatricas_hilos_procesos.md
+[Multiplicación de Matrices con Procesos](multiplicacionmatricas_hilos_procesos.md)
 
 Para una implementación eficiente con concurrencia, recomendamos:
 
