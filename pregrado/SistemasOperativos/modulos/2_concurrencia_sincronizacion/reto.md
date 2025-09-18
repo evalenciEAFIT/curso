@@ -477,6 +477,7 @@ El reto será evaluado en base a los siguientes criterios:
   - Código fuente completo.
   - Documentación breve (README.md) explicando cómo compilar y ejecutar.
   - Video de demostración.
+  - La entrega se hace por interactiva virtual en el buzón
 
 ## Bonus (Hasta 10 puntos extra)
 - **Comandos adicionales**: Implementar comandos como `/list` (listar salas), `/users` (listar usuarios en la sala), `/leave` (abandonar sala).
@@ -507,8 +508,3 @@ Para ejecutar:
    ./cliente Camila
    ```
 
-## Conclusión
-
-Este reto permitirá a los estudiantes aplicar conceptos avanzados de sistemas operativos, como comunicación entre procesos, sincronización y gestión de recursos, en un contexto práctico y actual. Además, fomentará el trabajo en equipo y la resolución de problemas complejos.
-
-¡Mucha suerte a todos los equipos!
