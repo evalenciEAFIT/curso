@@ -18,8 +18,8 @@ En el mundo actual, las aplicaciones de mensajería instantánea como WhatsApp s
 
 - **Lenguaje**: C
 - **Mecanismo IPC**: Colas de mensajes (System V o POSIX)
-- **Sistema Operativo**: Linux/Unix
-- **Trabajo en equipo**: 2-3 personas por equipo
+- **Sistema Operativo**: Linux
+- **Trabajo en equipo**: 2-5 personas por equipo
 - **Fecha de entrega**: 10 días a partir de la publicación del reto
 
 ## Ejemplo Práctico: Funcionamiento del Sistema
@@ -464,27 +464,23 @@ El reto será evaluado en base a los siguientes criterios:
 
 | Criterio | Puntos | Descripción |
 |----------|--------|-------------|
-| Entrega a tiempo | 5 | El proyecto se entrega dentro del plazo establecido. |
-| Demostración | 5 | La demostración del proyecto es clara y muestra todas las funcionalidades. |
+| Demostración | 10 | La demostración del proyecto es clara y muestra todas las funcionalidades. Se entrega por video corto. |
 
 ## Condiciones del Reto
 
-- **Equipos**: 2-3 personas por equipo.
+- **Equipos**: 2-5 personas por equipo.
 - **Fecha de entrega**: 10 días a partir de la publicación del reto.
-- **Plataforma**: Linux/Unix.
+- **Plataforma**: Linux.
 - **Lenguaje**: C.
 - **Mecanismo IPC**: Colas de mensajes (System V o POSIX).
 - **Entrega**: 
   - Código fuente completo.
   - Documentación breve (README.md) explicando cómo compilar y ejecutar.
-  - Video de demostración (opcional, pero recomendado).
+  - Video de demostración.
 
 ## Bonus (Hasta 10 puntos extra)
-
-- **Interfaz de usuario mejorada**: Implementar una interfaz más amigable (por ejemplo, usando ncurses).
 - **Comandos adicionales**: Implementar comandos como `/list` (listar salas), `/users` (listar usuarios en la sala), `/leave` (abandonar sala).
 - **Persistencia**: Guardar el historial de mensajes en archivos.
-- **Seguridad**: Implementar autenticación de usuarios.
 
 ## Nota para Estudiantes sin Experiencia en Redes
 
