@@ -1,7 +1,9 @@
 
-# Reto de Programación: Sistema de Chat con Colas de Mensajes
+
 ---
 # RETO 1
+# Reto 1: Sistema de Chat con Colas de Mensajes
+
 ## Descripción del Reto
 
 En el mundo actual, las aplicaciones de mensajería instantánea como WhatsApp son fundamentales para la comunicación diaria. En este reto, los estudiantes deberán implementar un sistema de chat simple entre procesos utilizando colas de mensajes (message queues) como mecanismo de comunicación entre procesos (IPC). El sistema debe soportar múltiples salas de chat, donde los usuarios pueden unirse a diferentes salas y enviar mensajes que serán recibidos por todos los miembros de la sala.
