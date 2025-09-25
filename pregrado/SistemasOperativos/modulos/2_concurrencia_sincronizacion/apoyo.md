@@ -290,7 +290,7 @@ int main() {
 ---
 
 ## Conclusión
-- ##OpenMP## es la mejor opción para paralelismo en matrices debido a simplicidad y rendimiento.
+- `#OpenMP´ es la mejor opción para paralelismo en matrices debido a simplicidad y rendimiento.
 - ##POSIX## es útil para escenarios donde se necesita control fino del sistema.
 - ##Secuencial## sirve como referencia pero no escala.
 
