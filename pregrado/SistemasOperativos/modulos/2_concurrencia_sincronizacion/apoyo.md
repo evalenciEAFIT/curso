@@ -31,13 +31,13 @@ OpenMP (Open Multi-Processing) es una API para programación paralela en sistema
 #include <stdlib.h>
 #include <time.h>
 
-#define N 1000  // Tamaño de la matriz (ajustable)
+#define N 10000  // Tamaño de la matriz (ajustable)
 
 /**
- * @brief Multiplica dos matrices cuadradas de tamaño N x N.
- * @param A Primera matriz.
- * @param B Segunda matriz.
- * @param C Matriz resultado.
+ * Multiplica dos matrices cuadradas de tamaño N x N.
+ * - A Primera matriz.
+ * - B Segunda matriz.
+ * - C Matriz resultado.
  */
 void multiply_matrices(double A[N][N], double B[N][N], double C[N][N]) {
     for (int i = 0; i < N; i++) {
@@ -106,26 +106,41 @@ Usa `fork()` para crear procesos hijos y memoria compartida (`shmget`, `shmat`).
 #include <unistd.h>
 #include <time.h>
 
-#define N 1000
-#define NUM_PROCESSES 4  // Número de procesos
+#define N 10000
+#define NUM_PROCESSES 4
+
+// Definición de estructura nombrada para argumentos
+typedef struct {
+    int start_row, end_row;
+    int shmid_A, shmid_B, shmid_C;
+} MultiplyArgs;
 
 /**
- * @brief Multiplica una parte de la matriz.
- * @param args Puntero a estructura con datos de inicio/fin.
+ * Multiplica una parte de la matriz usando memoria compartida.
+ * - args Puntero a estructura con datos de inicio/fin y IDs de memoria.
  */
 void multiply_partial(void *args) {
-    struct { int start_row, end_row; } *data = (struct { int start_row, end_row; } *)args;
+    MultiplyArgs *data = (MultiplyArgs*)args;
     
+    // Adjuntar memoria compartida
+    double (*A)[N] = shmat(data->shmid_A, NULL, 0);
+    double (*B)[N] = shmat(data->shmid_B, NULL, 0);
+    double (*C)[N] = shmat(data->shmid_C, NULL, 0);
+
     for (int i = data->start_row; i < data->end_row; i++) {
         for (int j = 0; j < N; j++) {
             double sum = 0;
             for (int k = 0; k < N; k++) {
-                sum += ((double(*)[N])shmat(shmid_A, NULL, 0))[i][k] *
-                       ((double(*)[N])shmat(shmid_B, NULL, 0))[k][j];
+                sum += A[i][k] * B[k][j];
             }
-            ((double(*)[N])shmat(shmid_C, NULL, 0))[i][j] = sum;
+            C[i][j] = sum;
         }
     }
+
+    // Desadjuntar memoria compartida
+    shmdt(A);
+    shmdt(B);
+    shmdt(C);
 }
 
 int main() {
@@ -139,7 +154,14 @@ int main() {
     double (*B)[N] = shmat(shmid_B, NULL, 0);
     double (*C)[N] = shmat(shmid_C, NULL, 0);
 
-    // Inicialización de matrices (similar al caso secuencial)
+    // Inicialización de matrices
+    srand(time(NULL));
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            A[i][j] = rand() % 10;
+            B[i][j] = rand() % 10;
+        }
+    }
 
     // Medicion de tiempo
     clock_t start = clock();
@@ -151,10 +173,15 @@ int main() {
     for (int i = 0; i < NUM_PROCESSES; i++) {
         pids[i] = fork();
         if (pids[i] == 0) {  // Hijo
-            struct { int start_row, end_row; } args = {
+            // Preparar argumentos para la función
+            MultiplyArgs args = {
                 .start_row = i * rows_per_process,
-                .end_row = (i == NUM_PROCESSES-1) ? N : (i+1)*rows_per_process
+                .end_row = (i == NUM_PROCESSES-1) ? N : (i+1)*rows_per_process,
+                .shmid_A = shmid_A,
+                .shmid_B = shmid_B,
+                .shmid_C = shmid_C
             };
+            
             multiply_partial(&args);
             exit(EXIT_SUCCESS);
         }
@@ -190,13 +217,13 @@ int main() {
 #include <stdlib.h>
 #include <time.h>
 
-#define N 1000
+#define N 10000
 
 /**
- * @brief Multiplica matrices usando OpenMP.
- * @param A Primera matriz.
- * @param B Segunda matriz.
- * @param C Matriz resultado.
+ * Multiplica matrices usando OpenMP.
+ * - A Primera matriz.
+ * - B Segunda matriz.
+ * - C Matriz resultado.
  */
 void multiply_matrices_omp(double A[N][N], double B[N][N], double C[N][N]) {
     #pragma omp parallel for collapse(2) schedule(static)
@@ -229,8 +256,7 @@ int main() {
 
     free(A); free(B); free(C);
     return EXIT_SUCCESS;
-}
-```
+}```
 
 **Características**:
 - Directiva `collapse(2)` fusiona dos bucles anidados.
