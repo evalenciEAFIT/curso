@@ -290,8 +290,8 @@ int main() {
 ---
 
 ## Conclusión
-- **OpenMP** es la mejor opción para paralelismo en matrices debido a simplicidad y rendimiento.
-- **POSIX** es útil para escenarios donde se necesita control fino del sistema.
-- **Secuencial** sirve como referencia pero no escala.
+- ##OpenMP## es la mejor opción para paralelismo en matrices debido a simplicidad y rendimiento.
+- ##POSIX## es útil para escenarios donde se necesita control fino del sistema.
+- ##Secuencial## sirve como referencia pero no escala.
 
-**Recomendación**: Usar OpenMP para aplicaciones intensivas en cómputo con matrices grandes.
+##Recomendación##: Usar OpenMP para aplicaciones intensivas en cómputo con matrices grandes.
