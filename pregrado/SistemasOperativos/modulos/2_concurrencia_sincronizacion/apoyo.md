@@ -256,7 +256,8 @@ int main() {
 
     free(A); free(B); free(C);
     return EXIT_SUCCESS;
-}```
+}
+```
 
 **Características**:
 - Directiva `collapse(2)` fusiona dos bucles anidados.
