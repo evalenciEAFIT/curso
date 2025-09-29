@@ -843,16 +843,16 @@ El reto será evaluado en base a los siguientes criterios:
 
 | Criterio | Puntos | Descripción |
 |----------|--------|-------------|
-| Creación y gestión de colas | 10 | El servidor crea correctamente las colas para las salas y los clientes se conectan adecuadamente. |
-| Unirse a salas | 10 | Los clientes pueden unirse a salas existentes y el servidor gestiona correctamente la lista de miembros. |
-| Envío de mensajes | 10 | Los mensajes enviados por un cliente son recibidos por todos los demás miembros de la sala. |
-| Múltiples salas | 10 | El sistema soporta múltiples salas simultáneamente sin interferencia entre ellas. |
+| Creación y gestión | 10 | El servidor crea correctamente las colas para las salas y los clientes se conectan adecuadamente. Para la imagen, las funciones sobre la imagenes valen 10 puntos |
+| Unirse a salas / Ejecurar las funciones | 10 | Los clientes pueden unirse a salas existentes y el servidor gestiona correctamente la lista de miembros.  El usuario puede ejecurar la función que desea sobre la imagen,|
+| Envío de mensajes / grabar la imagen resultado | 10 | Los mensajes enviados por un cliente son recibidos por todos los demás miembros de la sala. / En la imagen el resultado debe ser una imagen de salida |
+| Múltiples salas / Multiples funciones | 10 | El sistema soporta múltiples salas simultáneamente sin interferencia entre ellas. / El programa debe ejecurar una a una las funciones sobre la imagen|
 
 ### 2. Diseño y Arquitectura (20 puntos)
 
 | Criterio | Puntos | Descripción |
 |----------|--------|-------------|
-| Estructura de mensajes | 5 | Los mensajes tienen una estructura clara y bien definida. |
+| Estructura de mensajes / Explicación de las funciones | 5 | Los mensajes tienen una estructura clara y bien definida. / Funciones explicadas|
 | Modularidad | 5 | El código está organizado en funciones y módulos lógicos. |
 | Manejo de errores | 5 | El sistema maneja adecuadamente errores (ej: sala no existe, cola llena, etc.). |
 | Documentación | 5 | El código está documentado con comentarios claros y explicativos. |
