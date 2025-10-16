@@ -1,17 +1,5 @@
 ### **Módulo 3: Gestión de Memoria y Almacenamiento (Semanas 10-14)**
 
-
-¡Claro que sí! Aquí tienes un documento completo diseñado para entender, desde la perspectiva de un Sistema Operativo Linux, los conceptos de archivos binarios y de texto plano. Incluye explicaciones claras, código en C con buenas prácticas y comentarios detallados.
-
----
-
-### **Guía de Archivos Binarios y de Texto en Linux con Lenguaje C**
-
-**Autor:** Un asistente de IA
-**Objetivo:** Proporcionar una comprensión clara y práctica de la diferencia entre archivos de texto plano y archivos binarios, cómo el Sistema Operativo Linux los maneja y cómo trabajar con ellos en C.
-
----
-
 ### **1. Perspectiva del Sistema Operativo (Linux): "Todo es un Archivo"**
 
 En Linux (y en sistemas tipo Unix en general), una de las filosofías fundamentales es **"todo es un archivo"**. Esto significa que el SO interactúa con una gran cantidad de recursos (discos duros, puertos USB, la memoria, incluso la información de los procesos) a través de una interfaz unificada: la interfaz de archivo.
