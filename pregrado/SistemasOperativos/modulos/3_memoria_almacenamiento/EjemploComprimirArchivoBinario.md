@@ -456,7 +456,7 @@ int main(int argc, char *argv[]) {
 
 ---
 
-### **3. Comparación de Modelos y Conclusión**
+### **Comparación de Modelos y Conclusión**
 
 | Característica | Run-Length Encoding (RLE) | Lempel-Ziv (LZ77) |
 | :--- | :--- | :--- |
