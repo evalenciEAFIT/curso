@@ -1,12 +1,13 @@
-### **Universidad EAFIT**
+# **Universidad EAFIT**
 
-### **Escuela de Ciencias Aplicadas e Ingeniería**
+### **Escuela de Ciencias Aplicadas e Ingeniería**  
 
-### **Examen Final Práctico - Sistemas Operativos**
+### **Examen Final Práctico - Sistemas Operativos**  
 
-**Título del Proyecto:** Utilidad de Gestión Segura y Eficiente de Archivos (GSEA)
+**Título del Proyecto:** Utilidad de Gestión Segura y Eficiente de Archivos (GSEA)  
 
-**Modalidad:** Grupal (Equipos de hasta 5 integrantes)
+**Modalidad:** Grupal (Equipos de hasta 5 integrantes)   
+
 **Fecha de Entrega:** Noviembre 20 de 2025
 
 -----
