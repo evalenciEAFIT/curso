@@ -13,6 +13,8 @@
 -----
 
 Recurso: https://link.springer.com/book/10.1007/978-1-84800-072-8
+https://link.springer.com/book/10.1007/978-1-4842-9450-5
+https://link.springer.com/books/a/1
 
 
 ## **1. Objetivo General**
