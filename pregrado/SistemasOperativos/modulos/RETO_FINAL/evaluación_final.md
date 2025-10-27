@@ -12,6 +12,9 @@
 
 -----
 
+Recurso: https://link.springer.com/book/10.1007/978-1-84800-072-8
+
+
 ## **1. Objetivo General**
 
 El presente examen busca evaluar la capacidad de los estudiantes para aplicar conceptos fundamentales de sistemas operativos en el diseño y desarrollo de una aplicación de bajo nivel. El estudiante deberá demostrar dominio en la gestión de archivos mediante **llamadas al sistema**, la implementación de **concurrencia** para la optimización del rendimiento y la **investigación e implementación de algoritmos** de compresión y encriptación desde cero, sin depender de librerías externas para dichas funcionalidades.
